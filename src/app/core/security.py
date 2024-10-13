@@ -1,8 +1,6 @@
 from datetime import timezone, datetime, timedelta
-from typing import Any, Literal
+from typing import Any
 
-import bcrypt
-from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,32 +14,29 @@ ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
 
 
-async def verify_password(plain_password: str, hashed_password: str) -> bool:
-    correct_password: bool = bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
-    return correct_password
+async def authenticate_user(public_address: str, db: AsyncSession) -> dict[str, Any]:
+    """
+    Authenticate or register a user based on their wallet's public address.
+    
+    Args:
+        public_address (str): The public address of the wallet.
+        db (AsyncSession): The database session.
+    
+    Returns:
+        dict[str, Any]: User data if found or newly created.
+    """
+    # Check if user already exists by public address
+    db_user: dict | None = await crud_users.get(db=db, public_address=public_address, is_deleted=False)
 
-
-def get_password_hash(password: str) -> str:
-    hashed_password: str = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-    return hashed_password
-
-
-async def authenticate_user(username_or_email: str, password: str, db: AsyncSession) -> dict[str, Any] | Literal[False]:
-    if "@" in username_or_email:
-        db_user: dict | None = await crud_users.get(db=db, email=username_or_email, is_deleted=False)
-    else:
-        db_user = await crud_users.get(db=db, username=username_or_email, is_deleted=False)
-
+    # If the user does not exist, create a new user record
     if not db_user:
-        return False
-
-    elif not await verify_password(password, db_user["hashed_password"]):
-        return False
+        user_data = {"public_address": public_address}
+        db_user = await crud_users.create(db=db, object=user_data)
 
     return db_user
+
 
 
 async def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:

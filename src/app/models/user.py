@@ -14,12 +14,12 @@ class UserBase(SQLModel):
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     is_superuser: bool = Field(default=False)
-    email: Optional[str] = Field(..., nullable=True, unique=True, schema_extra={"example": "user.userson@example.com"})
+    email: Optional[str] = Field(..., nullable=True, unique=True, schema_extra={"example": "moses@example.com"})
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
 
-    predictions: int = Relationship(back_populates="user")
-    balance: Optional[int] = Relationship(back_populates="user", uselist=False)
+    predictions: List[int] = Relationship(back_populates="user")
+    balance: int = Relationship(back_populates="user")
 
 
 class UserRead(SQLModel):
@@ -36,5 +36,5 @@ class UserEmailUpdate(SQLModel):
     email: Optional[str] = None
 
 class UserUpdateInternal(UserEmailUpdate):
-    updated_at: Optional[datetime] = Field(default_factory=datetime.now(datetime.timezone.utc))
+    updated_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 

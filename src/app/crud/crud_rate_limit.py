@@ -1,8 +1,13 @@
 from fastcrud import FastCRUD
 
-from ..models.rate_limit import RateLimit, RateLimitDelete, RateLimitUpdate, RateLimitUpdateInternal
+from ..models.rate_limit import (
+    RateLimit, RateLimitCreateInternal, 
+    RateLimitDelete, RateLimitUpdate, 
+    RateLimitUpdateInternal
+)
 
 CRUDRateLimit = FastCRUD[
-    RateLimit, RateLimitUpdate, RateLimitUpdateInternal, RateLimitDelete
+    RateLimit, RateLimitCreateInternal,RateLimitUpdate, 
+    RateLimitUpdateInternal, RateLimitDelete
 ]
 crud_rate_limits = CRUDRateLimit(RateLimit)

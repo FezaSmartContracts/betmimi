@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from sqlmodel import SQLModel, Field
 
@@ -20,7 +20,7 @@ class RateLimitBase(SQLModel):
 class RateLimit(RateLimitBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: Optional[str] = Field(default=None, schema_extra={"example": "users:5:60"})
-    created_at: datetime = Field(default_factory=lambda: datetime.now(datetime.timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
 
 
@@ -31,6 +31,9 @@ class RateLimitRead(RateLimitBase):
 
 class RateLimitCreate(RateLimitBase):
     name: Optional[str] = Field(default=None, schema_extra={"example": "api_usdtv1_users:5:60"})
+
+class RateLimitCreateInternal(RateLimitCreate):
+    pass
 
 
 class RateLimitUpdate(SQLModel):
@@ -45,7 +48,7 @@ class RateLimitUpdate(SQLModel):
 
 
 class RateLimitUpdateInternal(RateLimitUpdate):
-    updated_at: Optional[datetime] = Field(default_factory=datetime.now(datetime.timezone.utc))
+    updated_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class RateLimitDelete(SQLModel):
     pass

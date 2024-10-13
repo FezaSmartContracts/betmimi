@@ -1,13 +1,13 @@
 from typing import Annotated, Any
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Request, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.config import settings
 from ..core.db.database import async_get_db
 from ..core.exceptions.http_exceptions import ForbiddenException, RateLimitException, UnauthorizedException
 from ..core.logger import logging
-from ..core.security import oauth2_scheme, verify_token
+from ..core.security import verify_token
 from ..core.utils.rate_limit import is_rate_limited
 from ..crud.crud_rate_limit import crud_rate_limits
 from ..crud.crud_users import crud_users
@@ -21,17 +21,23 @@ DEFAULT_PERIOD = settings.DEFAULT_RATE_LIMIT_PERIOD
 
 
 async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[AsyncSession, Depends(async_get_db)]
+    token: Annotated[str, Header(alias="Authorization")], 
+    db: Annotated[AsyncSession, Depends(async_get_db)]
 ) -> dict[str, Any] | None:
-    token_data = await verify_token(token, db)
-    if token_data is None:
+    # Extract the actual token from the 'Bearer' authorization header
+    if not token.startswith("Bearer "):
+        raise UnauthorizedException("Invalid token format.")
+    token_value = token.split(" ")[1]
+
+    # Verify the token and retrieve token data
+    token_data = await verify_token(token_value, db)
+    if not token_data:
         raise UnauthorizedException("User not authenticated.")
 
-    if "@" in token_data.username_or_email:
-        user: dict | None = await crud_users.get(db=db, email=token_data.username_or_email, is_deleted=False)
-    else:
-        user = await crud_users.get(db=db, username=token_data.username_or_email, is_deleted=False)
+    # Fetch the user based on public_address
+    user = await crud_users.get(db=db, public_address=token_data.public_address, is_deleted=False)
 
+    # Check if user is found and return user data
     if user:
         return user
 

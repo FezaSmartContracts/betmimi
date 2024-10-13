@@ -1,7 +1,13 @@
 from fastcrud import FastCRUD
 
-from ..models.predictions import Prediction, PredictionRead, PredictionUpdate
+from ..models.predictions import (
+    Prediction, PredictionUpdateInternal, 
+    PredictionUpdate, PredictionCreate
+)
 
-CRUDUser = FastCRUD[Prediction, PredictionRead, PredictionUpdate]
+CRUDUser = FastCRUD[
+    Prediction, PredictionCreate, PredictionUpdate,
+    PredictionUpdateInternal, None
+]
 
 crud_predictions = CRUDUser(Prediction)

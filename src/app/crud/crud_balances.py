@@ -1,7 +1,13 @@
 from fastcrud import FastCRUD
 
-from ..models.balances import UserBalance, UserBalanceRead, UserBalanceUpdate
+from ..models.balances import (
+    UserBalance, UserBalanceCreate,
+    UserBalanceCreateInternal, UserBalanceUpdate
+)
 
-CRUDUser = FastCRUD[UserBalance, UserBalanceRead, UserBalanceUpdate]
+CRUDUser = FastCRUD[
+    UserBalance, UserBalanceCreate,
+    UserBalanceCreateInternal, UserBalanceUpdate
+]
 
 crud_balances = CRUDUser(UserBalance)

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 
 from sqlmodel import SQLModel, Field, Relationship
@@ -19,7 +19,7 @@ class Prediction(SQLModel, table=True):
     for_sale: bool = Field(default=False, index=True)
     sold: bool = Field(default=False, index=True)
     price: Optional[int] = Field(default=None, index=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(datetime.timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
 
     user: Optional[int] = Relationship(back_populates="predictions")
@@ -32,10 +32,31 @@ class Opponent(SQLModel, table=True):
     opponent_address: str
     opponent_wager: int
     result: int
-    created_at: datetime = Field(default_factory=lambda: datetime.now(datetime.timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
 
     prediction: Prediction = Relationship(back_populates="opponents")
+
+class PredictionCreate(SQLModel):
+    user_id: int
+    index: int
+    layer: str
+    match_id: int
+    result: int
+    amount: int
+    settled: bool = False
+    total_opponent_wager: int = 0
+    f_matched: bool = False
+    p_matched: bool = False
+    for_sale: bool = False
+    sold: bool = False
+    price: Optional[int] = None
+
+class OpponentCreate(SQLModel):
+    prediction_id: int
+    opponent_address: str
+    opponent_wager: int
+    result: int
 
 class PredictionRead(SQLModel):
     prediction_id: int
@@ -73,13 +94,18 @@ class PredictionUpdate(SQLModel):
     for_sale: bool = Field(default=False, index=True)
     sold: bool = Field(default=False, index=True)
     price: Optional[int] = Field(default=None, index=True)
-    updated_at: datetime = Field(default_factory=datetime.now(datetime.timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PredictionUpdateInternal(PredictionUpdate):
+    pass
 
 class OpponentUpdate(SQLModel):
     opponent_address: str
     opponent_wager: int
     result: int
-    updated_at: datetime = Field(default_factory=datetime.now(datetime.timezone.utc))
+
+class OpponentUpdateInternal(OpponentUpdate):
+    pass
 
 
 

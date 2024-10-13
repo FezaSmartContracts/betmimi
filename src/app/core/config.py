@@ -48,10 +48,8 @@ class PostgresSettings(DatabaseSettings):
 
 
 class FirstUserSettings(BaseSettings):
-    ADMIN_NAME: str = config("ADMIN_NAME", default="admin")
-    ADMIN_EMAIL: str = config("ADMIN_EMAIL", default="admin@admin.com")
-    ADMIN_USERNAME: str = config("ADMIN_USERNAME", default="admin")
-    ADMIN_PASSWORD: str = config("ADMIN_PASSWORD", default="!Ch4ng3Th1sP4ssW0rd!")
+    ADMIN_PUBLIC_ADDRESS: str = config("ADMIN_PUBLIC_ADDRESS", default="ADMIN_PUBLIC_ADDRESS")
+    ADMIN_EMAIL: str = config("ADMIN_EMAIL", default="ADMIN_EMAIL")
 
 
 class TestSettings(BaseSettings):
