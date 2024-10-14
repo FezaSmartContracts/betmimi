@@ -7,6 +7,7 @@ from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Tab
 from ..app.core.config import settings
 from ..app.core.db.database import AsyncSession, async_engine, local_session
 from ..app.models.user import User
+from ..app.core.address_verification import generate_random
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ async def create_first_user(session: AsyncSession) -> None:
     try:
         public_address = settings.ADMIN_PUBLIC_ADDRESS
         email = settings.ADMIN_EMAIL
+        nonce = generate_random()
 
         query = select(User).filter_by(public_address=public_address)
         result = await session.execute(query)
@@ -27,6 +29,7 @@ async def create_first_user(session: AsyncSession) -> None:
                 metadata,
                 Column("id", Integer, primary_key=True, autoincrement=True, nullable=False),
                 Column("public_address", String(42), nullable=False, unique=True, index=True),
+                Column("nonce", String(4), nullable=True, index=True),
                 Column("email", String(50), nullable=True, unique=True, index=True),
                 Column("created_at", DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False),
                 Column("updated_at", DateTime, nullable=True),
@@ -35,6 +38,7 @@ async def create_first_user(session: AsyncSession) -> None:
 
             data = {
                 "public_address": public_address,
+                "nonce": nonce,
                 "email": email,
                 "is_superuser": True,
                 "created_at": datetime.now(timezone.utc),
@@ -59,3 +63,37 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+
+'''async def create_first_user(session: AsyncSession) -> None:
+    try:
+        public_address = settings.ADMIN_PUBLIC_ADDRESS
+        email = settings.ADMIN_EMAIL
+        nonce = generate_random()
+
+        # Check if the user already exists using the ORM User model
+        query = select(User).filter_by(public_address=public_address)
+        result = await session.execute(query)
+        user = result.scalar_one_or_none()
+
+        if user is None:
+            # Create a new instance of the User model for insertion
+            new_user = User(
+                public_address=public_address,
+                nonce=nonce,
+                email=email,
+                is_superuser=True,
+                created_at=datetime.now(timezone.utc),
+            )
+
+            # Add and commit the new user to the database
+            session.add(new_user)
+            await session.commit()
+
+            logger.info(f"Admin user with public address {public_address} created successfully.")
+
+        else:
+            logger.info(f"Admin user with public address {public_address} already exists.")
+
+    except Exception as e:
+        logger.error(f"Error creating admin user: {e}")'''

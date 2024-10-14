@@ -23,6 +23,7 @@ async def read_users(
         db=db,
         offset=compute_offset(page, items_per_page),
         limit=items_per_page,
+        return_as_model=True,
         schema_to_select=UserRead,
         is_deleted=False,
     )

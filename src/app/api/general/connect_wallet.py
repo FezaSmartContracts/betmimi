@@ -1,14 +1,19 @@
 from datetime import timedelta
 from typing import Annotated
+import uuid
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, Request, Response, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from web3.auto import w3
 
 from ...core.config import settings
 from ...core.db.database import async_get_db
 from ...core.exceptions.http_exceptions import UnauthorizedException
 from ...core.schemas import Token
-from ...models.user import UserRead
+from ...crud.crud_users import crud_users
+from ...models.user import UserRead, UserNonce, SignatureVerificationRequest
+from ...core.address_verification import verify_signature, generate_random
 from ...core.security import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     authenticate_user,
@@ -19,10 +24,35 @@ from ...core.security import (
 
 router = APIRouter(tags=["connect_wallet"])
 
+@router.get("/auth/nonce/{public_address}", response_model=UserNonce)
+async def fetch_user_nonce(
+    public_address: str, 
+    db: Annotated[AsyncSession, Depends(async_get_db)]
+) -> UserNonce:
+    if not w3.is_address(public_address):
+        raise HTTPException(status_code=400, detail="Invalid Ethereum address")
+    
+    public_address = public_address.lower()
+    wallet: UserNonce | None = await crud_users.get(
+        db=db, schema_to_select=UserNonce, public_address=public_address, is_deleted=False
+    )
+    # Create new user if it does not exist
+    if wallet is None:
+        nonce = generate_random()
+        user_data = {"public_address": public_address, "nonce": nonce}
+        new_user = await crud_users.create(db=db, object=user_data)
+        
+        return UserNonce(nonce=new_user.nonce)
+
+    # Return the nonce of the existing user
+    return UserNonce(nonce=wallet.nonce)
+
+
 @router.post("/user/connect", response_model=Token, status_code=201)
 async def connect_user_wallet(
-    response: Response, 
-    user: UserRead, 
+    request: Request,
+    response: Response,
+    user_data: SignatureVerificationRequest,
     db: Annotated[AsyncSession, Depends(async_get_db)]
 ) -> dict:
     """
@@ -31,14 +61,32 @@ async def connect_user_wallet(
     - If the wallet is already connected, a session is established without creating a new user record.
     
     Args:
+        request (Request): The incoming request object.
         response (Response): The response object.
-        user (UserCreate): The user data containing the public address of the wallet.
+        user_data (SignatureVerificationRequest): The user data containing the public address and signature.
         db (AsyncSession): The database session.
     
     Returns:
         dict: The user's information along with a session token.
     """
-    db_user = await authenticate_user(public_address=user.public_address, db=db)
+    fetched_user: UserNonce = await crud_users.get(
+        db=db, schema_to_select=UserNonce, public_address=user_data.public_address, is_deleted=False
+    )
+    
+    # Ensure user exists
+    if not fetched_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    nonce = fetched_user.nonce
+
+    # Attempt to verify the signature
+    try:
+        verify_signature(nonce=nonce, signature=user_data.signature, public_address=user_data.public_address)
+    except HTTPException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Signature verification failed")
+
+    # If verification passed, authenticate and generate tokens
+    db_user = await authenticate_user(public_address=user_data.public_address, db=db)
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = await create_access_token(
@@ -58,6 +106,10 @@ async def connect_user_wallet(
         samesite="Lax", 
         max_age=max_age
     )
+
+    # Update the nonce after successful login
+    new_nonce = generate_random()
+    await crud_users.update(db=db, object={"nonce": new_nonce}, id=db_user["id"])
 
     return {"access_token": access_token, "token_type": "bearer"}
 

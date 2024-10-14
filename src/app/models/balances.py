@@ -1,7 +1,10 @@
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class UserBalance(SQLModel, table=True):
@@ -11,7 +14,10 @@ class UserBalance(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
 
-    user: Optional[int] = Relationship(back_populates="balance")
+    def __init_subclass__(cls, **kwargs):
+        # Define relationships after subclass initialization
+        cls.user: Optional["User"] = Relationship(back_populates="balance")
+        super().__init_subclass__(**kwargs)
 
 class UserBalanceUpdate(SQLModel):
     balance: float = Field(default=0.0)

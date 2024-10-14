@@ -1,7 +1,10 @@
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 
 from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class Prediction(SQLModel, table=True):
@@ -22,8 +25,10 @@ class Prediction(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
 
-    user: Optional[int] = Relationship(back_populates="predictions")
-    opponents: List["Opponent"] = Relationship(back_populates="prediction")
+    def __init_subclass__(cls, **kwargs):
+        # Define relationships after subclass initialization
+        cls.user: Optional["User"] = Relationship(back_populates="predictions")
+        super().__init_subclass__(**kwargs)
 
 
 class Opponent(SQLModel, table=True):
