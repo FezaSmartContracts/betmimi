@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
 import uuid
+from typing import Any
 
 from fastapi import APIRouter, Depends, Request, Response, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,28 +25,32 @@ from ...core.security import (
 
 router = APIRouter(tags=["connect_wallet"])
 
-@router.get("/auth/nonce/{public_address}", response_model=UserNonce)
+@router.get("/auth/nonce/{public_address}")
 async def fetch_user_nonce(
+    request: Request,
     public_address: str, 
     db: Annotated[AsyncSession, Depends(async_get_db)]
-) -> UserNonce:
+) -> dict[str, Any]:
     if not w3.is_address(public_address):
         raise HTTPException(status_code=400, detail="Invalid Ethereum address")
     
     public_address = public_address.lower()
-    wallet: UserNonce | None = await crud_users.get(
-        db=db, schema_to_select=UserNonce, public_address=public_address, is_deleted=False
+    wallet: dict | None = await crud_users.get(
+        db, public_address="0xa6e562AB21F6c83D99C9b624B4F50AFC48e6db68"
     )
     # Create new user if it does not exist
     if wallet is None:
-        nonce = generate_random()
+        #return "Hello"
+        return {"Try harder": "Bro"}
+        """nonce = generate_random()
         user_data = {"public_address": public_address, "nonce": nonce}
         new_user = await crud_users.create(db=db, object=user_data)
         
-        return UserNonce(nonce=new_user.nonce)
+        return UserNonce(nonce=new_user.nonce)"""
 
     # Return the nonce of the existing user
-    return UserNonce(nonce=wallet.nonce)
+    #return UserNonce(nonce=wallet.nonce)
+    return wallet
 
 
 @router.post("/user/connect", response_model=Token, status_code=201)

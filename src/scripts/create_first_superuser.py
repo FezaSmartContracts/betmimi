@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 async def create_first_user(session: AsyncSession) -> None:
     try:
-        public_address = settings.ADMIN_PUBLIC_ADDRESS
+        public_address = settings.ADMIN_PUBLIC_ADDRESS.lower()
         email = settings.ADMIN_EMAIL
         nonce = generate_random()
 

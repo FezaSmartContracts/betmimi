@@ -40,11 +40,11 @@ services:
       - ./src/.env
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    # -------- replace with comment not to run migrations with docker --------
-    #expose:
-    #  - "5432"
-    ports:
-      - 5432:5432
+    # -------- replace with comment to run migrations with docker --------
+    expose:
+      - "5432"
+    #ports:
+    #  - 5432:5432
 
   redis:
     image: redis:alpine
@@ -52,6 +52,22 @@ services:
       - redis-data:/data
     expose:
       - "6379"
+
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "alembic revision --autogenerate -m 'Auto migration' && alembic upgrade head"
+    env_file:
+      - ./src/.env
+    depends_on:
+      - db
+    volumes:
+      - ./src/app:/code/app
+      - ./src/.env:/code/.env
+      - ./src/alembic.ini:/code/alembic.ini  # Mount the alembic.ini file
+      - ./src/migrations:/code/migrations
+
 
   #-------- uncomment to run with pgadmin --------
   # pgadmin:
