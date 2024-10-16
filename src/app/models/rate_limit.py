@@ -1,6 +1,6 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, text, TIMESTAMP, Column
 
 
 def sanitize_path(path: str) -> str:
@@ -20,8 +20,17 @@ class RateLimitBase(SQLModel):
 class RateLimit(RateLimitBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: Optional[str] = Field(default=None, schema_extra={"example": "users:5:60"})
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: Optional[datetime] = None
+    created_at: Optional[datetime] = Field(sa_column=Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP"),
+    ))
+    updated_at: Optional[datetime] = Field(sa_column=Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP"),
+        server_onupdate=text("CURRENT_TIMESTAMP"),
+    ))
 
 
 class RateLimitRead(RateLimitBase):
@@ -48,7 +57,7 @@ class RateLimitUpdate(SQLModel):
 
 
 class RateLimitUpdateInternal(RateLimitUpdate):
-    updated_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
+    pass
 
 class RateLimitDelete(SQLModel):
     pass

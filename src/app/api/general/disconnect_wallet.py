@@ -30,5 +30,4 @@ async def disconnect_user_wallet(
         return {"message": "Disconnected successfully"}
 
     except JWTError:
-        # Handle any JWT-related errors
         raise UnauthorizedException("Invalid or expired token.")

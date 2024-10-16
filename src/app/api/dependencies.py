@@ -35,7 +35,7 @@ async def get_current_user(
         raise UnauthorizedException("User not authenticated.")
 
     # Fetch the user based on public_address
-    user = await crud_users.get(db=db, public_address=token_data.public_address, is_deleted=False)
+    user = await crud_users.get(db=db, public_address=token_data.public_address.lower(), is_deleted=False)
 
     # Check if user is found and return user data
     if user:

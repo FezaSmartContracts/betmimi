@@ -15,9 +15,10 @@ router = APIRouter(tags=["users"])
 
 
 
+
 @router.get("/users", response_model=PaginatedListResponse[UserRead])
 async def read_users(
-    request: Request, db: Annotated[AsyncSession, Depends(async_get_db)], page: int = 1, items_per_page: int = 10
+    request: Request, db: Annotated[AsyncSession, Depends(async_get_db)], page: int, items_per_page: int
 ) -> dict:
     users_data = await crud_users.get_multi(
         db=db,
@@ -40,7 +41,7 @@ async def read_users_me(request: Request, current_user: Annotated[UserRead, Depe
 @router.get("/user/{public_address}", response_model=UserRead)
 async def read_user(request: Request, public_address: str, db: Annotated[AsyncSession, Depends(async_get_db)]) -> dict:
     db_user: UserRead | None = await crud_users.get(
-        db=db, schema_to_select=UserRead, public_address=public_address, is_deleted=False
+        db=db, schema_to_select=UserRead, public_address=public_address.lower(), is_deleted=False
     )
     if db_user is None:
         raise NotFoundException("User not found")

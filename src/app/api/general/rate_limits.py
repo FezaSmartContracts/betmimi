@@ -17,23 +17,26 @@ async def create_rate_limit(
     request: Request, rate_limit: RateLimitCreate, db: Annotated[AsyncSession, Depends(async_get_db)]
 ) -> RateLimitRead:
     """
-    Create a new rate limit.
-    This endpoint allows a superuser to create a new rate limit rule with a specified path, limit, and period.
-    Args:
-        request (Request): The request object.
-        rate_limit (RateLimitCreate): The rate limit information to create.
-        db (AsyncSession): The database session.
-    Returns:
-        RateLimitRead: The created rate limit details.
-    Raises:
-        DuplicateValueException: If a rate limit with the same name already exists.
+    - Create a new rate limit.
+    - This endpoint allows a superuser to create a new rate limit rule with a specified path, limit, and period.
+    - Args:
+        - `request (Request):` The request object.
+        - `rate_limit (RateLimitCreate):` The rate limit information to create.
+        - `db (AsyncSession):` The database session.
+    - Returns:
+        - `RateLimitRead:` The created rate limit details.
+    - Raises:
+        - `DuplicateValueException:` If a rate limit with the same name already exists.
     """
-    rate_limit_internal_dict = rate_limit.model_dump()
-    db_rate_limit = await crud_rate_limits.exists(db=db, name=rate_limit_internal_dict["name"])
+    #rate_limit_internal_dict = rate_limit.model_dump()
+    db_rate_limit = await crud_rate_limits.exists(db=db, name=rate_limit.name)
     if db_rate_limit:
         raise DuplicateValueException("Rate Limit Name not available")
 
-    created_rate_limit: RateLimitRead = await crud_rate_limits.create(db=db, object=rate_limit_internal_dict)
+    created_rate_limit: RateLimitRead = await crud_rate_limits.create(
+        db,
+        RateLimitCreate(name=rate_limit.name)
+    )
     return created_rate_limit
 
 @router.get("/rate_limits", response_model=PaginatedListResponse[RateLimitRead])
@@ -44,15 +47,15 @@ async def read_rate_limits(
     items_per_page: int = 10,
 ) -> dict:
     """
-    Retrieve a paginated list of rate limits.
-    This endpoint allows users to retrieve rate limits in a paginated format.
-    Args:
-        request (Request): The request object.
-        db (AsyncSession): The database session.
-        page (int): The page number to retrieve.
-        items_per_page (int): The number of items per page.
-    Returns:
-        dict: A dictionary containing the paginated list of rate limits.
+    - Retrieve a paginated list of rate limits.
+    - This endpoint allows users to retrieve rate limits in a paginated format.
+    - Args:
+        - `request (Request):` The request object.
+        - `db (AsyncSession):` The database session.
+        - `page (int):` The page number to retrieve.
+        - `items_per_page (int):` The number of items per page.
+    - Returns:
+        - `dict:` A dictionary containing the paginated list of rate limits.
     """
     rate_limits_data = await crud_rate_limits.get_multi(
         db=db,
@@ -68,16 +71,16 @@ async def read_rate_limit(
     request: Request, id: int, db: Annotated[AsyncSession, Depends(async_get_db)]
 ) -> dict:
     """
-    Retrieve a specific rate limit by ID.
-    This endpoint allows users to retrieve the details of a specific rate limit by its ID.
-    Args:
-        request (Request): The request object.
-        id (int): The ID of the rate limit to retrieve.
-        db (AsyncSession): The database session.
-    Returns:
-        dict: The details of the rate limit.
-    Raises:
-        NotFoundException: If the rate limit with the specified ID is not found.
+    - Retrieve a specific rate limit by ID.
+    - This endpoint allows users to retrieve the details of a specific rate limit by its ID.
+    - Args:
+        - `request (Request):` The request object.
+        - `id (int):` The ID of the rate limit to retrieve.
+        - `db (AsyncSession):` The database session.
+    - Returns:
+        - `dict:` The details of the rate limit.
+    - Raises:
+        - `NotFoundException:` If the rate limit with the specified ID is not found.
     """
     db_rate_limit: dict | None = await crud_rate_limits.get(db=db, schema_to_select=RateLimitRead, id=id)
     if db_rate_limit is None:
@@ -93,23 +96,27 @@ async def update_rate_limit(
     db: Annotated[AsyncSession, Depends(async_get_db)],
 ) -> dict[str, str]:
     """
-    Update a specific rate limit by ID.
-    This endpoint allows a superuser to update an existing rate limit's path, limit, period, or name.
-    Args:
-        request (Request): The request object.
-        id (int): The ID of the rate limit to update.
-        values (RateLimitUpdate): The new values for the rate limit.
-        db (AsyncSession): The database session.
-    Returns:
-        dict[str, str]: A success message indicating the update status.
-    Raises:
-        NotFoundException: If the rate limit with the specified ID is not found.
+    - Update a specific rate limit by ID.
+    - This endpoint allows a superuser to update an existing rate limit's path, limit, period, or name.
+    - Args:
+        - `request (Request):` The request object.
+        - `id (int):` The ID of the rate limit to update.
+        - `values (RateLimitUpdate):` The new values for the rate limit.
+        - `db (AsyncSession):` The database session.
+    - Returns:
+        - `dict[str, str]:` A success message indicating the update status.
+    - Raises:
+        - `NotFoundException:` If the rate limit with the specified ID is not found.
     """
     db_rate_limit = await crud_rate_limits.get(db=db, schema_to_select=RateLimitRead, id=id)
     if db_rate_limit is None:
         raise NotFoundException("Rate Limit not found")
 
-    await crud_rate_limits.update(db=db, object=values, id=db_rate_limit["id"])
+    await crud_rate_limits.update(
+        db=db,
+        allow_multiple=True,
+        object=values, id=db_rate_limit["id"]
+    )
     return {"message": "Rate Limit updated"}
 
 @router.delete("/rate_limit/{id}", dependencies=[Depends(get_current_superuser)])
@@ -117,16 +124,16 @@ async def delete_rate_limit(
     request: Request, id: int, db: Annotated[AsyncSession, Depends(async_get_db)]
 ) -> dict[str, str]:
     """
-    Delete a specific rate limit by ID.
-    This endpoint allows a superuser to delete an existing rate limit by its ID.
-    Args:
-        request (Request): The request object.
-        id (int): The ID of the rate limit to delete.
-        db (AsyncSession): The database session.
-    Returns:
-        dict[str, str]: A success message indicating the deletion status.
-    Raises:
-        NotFoundException: If the rate limit with the specified ID is not found.
+    - Delete a specific rate limit by ID.
+    - This endpoint allows a superuser to delete an existing rate limit by its ID.
+    - Args:
+        - `request (Request):` The request object.
+        - `id (int):` The ID of the rate limit to delete.
+        - `db (AsyncSession):` The database session.
+    - Returns:
+        - `dict[str, str]:` A success message indicating the deletion status.
+    - Raises:
+        - `NotFoundException:` If the rate limit with the specified ID is not found.
     """
     db_rate_limit = await crud_rate_limits.get(db=db, schema_to_select=RateLimitRead, id=id)
     if db_rate_limit is None:

@@ -31,7 +31,7 @@ async def create_first_user(session: AsyncSession) -> None:
                 Column("public_address", String(42), nullable=False, unique=True, index=True),
                 Column("nonce", String(4), nullable=True, index=True),
                 Column("email", String(50), nullable=True, unique=True, index=True),
-                Column("created_at", DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False),
+                Column("created_at", DateTime(timezone=True), default=lambda: datetime.now(), nullable=False),
                 Column("updated_at", DateTime, nullable=True),
                 Column("is_superuser", Boolean, default=True),
             )
@@ -41,7 +41,7 @@ async def create_first_user(session: AsyncSession) -> None:
                 "nonce": nonce,
                 "email": email,
                 "is_superuser": True,
-                "created_at": datetime.now(timezone.utc),
+                "created_at": datetime.now(),
             }
 
             stmt = insert(user_table).values(data)

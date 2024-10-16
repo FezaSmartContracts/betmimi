@@ -5,7 +5,7 @@ from web3.auto import w3
 import uuid
 
 def generate_random():
-    """Generate a random UUID and return the first 7 characters."""
+    """Generate a random UUID and return the first 4 characters."""
     return str(uuid.uuid4())[:4]
 
 
@@ -23,7 +23,7 @@ def verify_signature(nonce: str, public_address: str, signature: str) -> bool:
     message = encode_defunct(text=nonce)
     try:
         recovered_address = w3.eth.account.recover_message(message, signature=signature)
-        if recovered_address.lower() != public_address.lower():
+        if str(recovered_address).lower() != public_address.lower():
             raise HTTPException(status_code=400, detail="Invalid signature")
         return True
     except Exception:

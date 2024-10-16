@@ -1,7 +1,7 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional, List
 
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Column, SQLModel, Field, Relationship, TIMESTAMP, text
 
 
 class UserBase(SQLModel):
@@ -13,8 +13,17 @@ class User(UserBase, table=True):
     nonce: str = Field(default=None)
     is_superuser: bool = Field(default=False)
     email: Optional[str] = Field(..., nullable=True, unique=True, schema_extra={"example": "moses@example.com"})
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: Optional[datetime] = None
+    created_at: Optional[datetime] = Field(sa_column=Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP"),
+    ))
+    updated_at: Optional[datetime] = Field(sa_column=Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP"),
+        server_onupdate=text("CURRENT_TIMESTAMP"),
+    ))
 
     predictions: List["Prediction"] = Relationship(back_populates="user")
     balance: "UserBalance" = Relationship(back_populates="user")
@@ -29,9 +38,17 @@ class UserRead(SQLModel):
     id: int
     public_address: str
 
+class UserReadNonce(UserRead):
+    nonce: str
+
+class UserPublicAddress(UserBase):
+    pass
+
 
 class UserReadInternal(UserRead):
     email: Optional[str] = None
+    nonce: str
+    
 
 
 class UserNonce(SQLModel):
@@ -39,7 +56,7 @@ class UserNonce(SQLModel):
 
 
 class UserCreate(UserBase):
-    pass
+    nonce: Optional[str] = Field(default=None)
 
 
 class UserEmailUpdate(SQLModel):
@@ -47,22 +64,35 @@ class UserEmailUpdate(SQLModel):
 
 
 class UserUpdateInternal(UserEmailUpdate):
-    updated_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
+    nonce: str
+
+class AdminUpdate(SQLModel):
+    is_superuser: bool
+
 
 
 class UserBalance(SQLModel, table=True):
     balance_id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", unique=True)
     balance: float = Field(default=0.0)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now())
+    created_at: Optional[datetime] = Field(sa_column=Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP"),
+    ))
+    updated_at: Optional[datetime] = Field(sa_column=Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP"),
+        server_onupdate=text("CURRENT_TIMESTAMP"),
+    ))
 
     user: Optional["User"] = Relationship(back_populates="balance")
 
 
 class UserBalanceUpdate(SQLModel):
     balance: float = Field(default=0.0)
-    updated_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class UserBalanceRead(SQLModel):
@@ -93,8 +123,17 @@ class Prediction(SQLModel, table=True):
     for_sale: bool = Field(default=False, index=True)
     sold: bool = Field(default=False, index=True)
     price: Optional[int] = Field(default=None, index=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: Optional[datetime] = None
+    created_at: Optional[datetime] = Field(sa_column=Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP"),
+    ))
+    updated_at: Optional[datetime] = Field(sa_column=Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP"),
+        server_onupdate=text("CURRENT_TIMESTAMP"),
+    ))
 
     user: Optional["User"] = Relationship(back_populates="predictions")
     opponents: List["Opponent"] = Relationship(back_populates="prediction")
@@ -143,7 +182,6 @@ class PredictionUpdate(SQLModel):
     for_sale: bool = Field(default=False, index=True)
     sold: bool = Field(default=False, index=True)
     price: Optional[int] = Field(default=None, index=True)
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class PredictionUpdateInternal(PredictionUpdate):
@@ -156,8 +194,17 @@ class Opponent(SQLModel, table=True):
     opponent_address: str
     opponent_wager: int
     result: int
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: Optional[datetime] = None
+    created_at: Optional[datetime] = Field(sa_column=Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP"),
+    ))
+    updated_at: Optional[datetime] = Field(sa_column=Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP"),
+        server_onupdate=text("CURRENT_TIMESTAMP"),
+    ))
 
     prediction: Prediction = Relationship(back_populates="opponents")
 
