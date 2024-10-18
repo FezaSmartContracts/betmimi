@@ -11,7 +11,7 @@ from ...core.exceptions.http_exceptions import UnauthorizedException
 from ...core.schemas import Token
 from ...crud.crud_users import crud_users
 from ...core.address_verification import verify_signature, generate_random
-from ...models.user import (
+from ...schemas.users import (
     UserNonce,
     SignatureVerificationRequest,
     UserCreate,

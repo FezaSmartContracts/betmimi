@@ -9,7 +9,7 @@ from ...core.db.database import async_get_db
 from ...core.exceptions.http_exceptions import DuplicateValueException, NotFoundException
 from ...crud.crud_rate_limit import crud_rate_limits
 from ...crud.crud_users import crud_users
-from ...models.user import UserRead, UserEmailUpdate
+from ...schemas.users import UserRead, UserEmailUpdate
 
 router = APIRouter(tags=["users"])
 

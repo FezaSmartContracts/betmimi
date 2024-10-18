@@ -1,7 +1,8 @@
 from fastcrud import FastCRUD
 
-from ..models.user import (
-    Opponent, OpponentCreate, OpponentUpdateInternal, OpponentUpdate
+from ..models.user import Opponent
+from ..schemas.opponents import (
+    OpponentCreate, OpponentUpdateInternal, OpponentUpdate
 )
 
 CRUDUser = FastCRUD[
@@ -9,4 +10,4 @@ CRUDUser = FastCRUD[
     OpponentUpdate, OpponentUpdateInternal, None
 ]
 
-crud_balances = CRUDUser(Opponent)
+crud_opponent = CRUDUser(Opponent)

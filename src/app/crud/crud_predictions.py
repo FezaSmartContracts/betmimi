@@ -1,7 +1,8 @@
 from fastcrud import FastCRUD
 
-from ..models.user import (
-    Prediction, PredictionUpdateInternal, 
+from ..models.user import Prediction
+from ..schemas.predictions import (
+    PredictionUpdateInternal, 
     PredictionUpdate, PredictionCreate
 )
 

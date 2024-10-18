@@ -9,7 +9,7 @@ from ..dependencies import get_current_superuser
 from ...core.db.database import async_get_db
 from ...core.exceptions.http_exceptions import DuplicateValueException, NotFoundException, RateLimitException
 from ...crud.crud_users import crud_users
-from ...models.user import AdminUpdate, UserPublicAddress, UserRead
+from ...schemas.users import AdminUpdate, UserPublicAddress, UserRead
 
 router = APIRouter(tags=["administration"])
 

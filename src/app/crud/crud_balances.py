@@ -1,7 +1,8 @@
 from fastcrud import FastCRUD
 
-from ..models.user import (
-    UserBalance, UserBalanceCreate,
+from ..models.user import UserBalance
+from ..schemas.users import (
+    UserBalanceCreate,
     UserBalanceUpdateInternal, UserBalanceUpdate
 )
 
