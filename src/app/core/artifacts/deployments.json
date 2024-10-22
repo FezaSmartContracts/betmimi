@@ -1,0 +1,23 @@
+
+{
+    "WinOrLoss": {
+      "contract_name": "USDTv1",
+      "contract_address": "0xD17db0380C27aD1417B02f923648c136EF807D3c"
+    },
+    "Zero": {
+      "contract_name": "ZUSDTv1",
+      "contract_address": "0x3a3876b0dd38C5545272E1ED812B6A35d4A60939"
+    },
+    "One": {
+      "contract_name": "OUSDTv1",
+      "contract_address": "0xB77e5d8A83726F765e74935f9240d84B29A46546"
+    },
+    "Two": {
+      "contract_name": "TUSDTv1",
+      "contract_address": "0xde90e41ECB134147b04471A08Ae26Ea86Ca5991b"
+    },
+    "Three": {
+      "contract_name": "HUSDTv1",
+      "contract_address": "0x1a8935586EEDD19aE07d14B21D58d3F9BE192562"
+    }
+}

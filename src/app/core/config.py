@@ -84,6 +84,8 @@ class DefaultRateLimitSettings(BaseSettings):
     DEFAULT_RATE_LIMIT_LIMIT: int = config("DEFAULT_RATE_LIMIT_LIMIT", default=10)
     DEFAULT_RATE_LIMIT_PERIOD: int = config("DEFAULT_RATE_LIMIT_PERIOD", default=3600)
 
+class AlchemySettings(BaseSettings):
+    ALCHEMY_API_KEY: str = config("ALCHEMY_API_KEY", default="ALCHEMY_API_KEY")
 
 class EnvironmentOption(Enum):
     LOCAL = "local"
@@ -106,6 +108,7 @@ class Settings(
     RedisQueueSettings,
     RedisRateLimiterSettings,
     DefaultRateLimitSettings,
+    AlchemySettings,
     EnvironmentSettings,
 ):
     pass

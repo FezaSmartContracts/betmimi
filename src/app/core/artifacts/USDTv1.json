@@ -1,0 +1,851 @@
+[
+    {
+        "type": "event",
+        "name": "GameRegistered",
+        "inputs": [
+            {
+                "name": "game_id",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "GameResolved",
+        "inputs": [
+            {
+                "name": "game_id",
+                "type": "uint256",
+                "indexed": true
+            },
+            {
+                "name": "result",
+                "type": "uint256",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "Predicted",
+        "inputs": [
+            {
+                "name": "prediction_id",
+                "type": "uint256",
+                "indexed": true
+            },
+            {
+                "name": "user",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "game_id",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "Backed",
+        "inputs": [
+            {
+                "name": "prediction_id",
+                "type": "uint256",
+                "indexed": true
+            },
+            {
+                "name": "backer",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "game_id",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "Claimed",
+        "inputs": [
+            {
+                "name": "user",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "PredictionSettled",
+        "inputs": [
+            {
+                "name": "prediction_id",
+                "type": "uint256",
+                "indexed": true
+            },
+            {
+                "name": "match_id",
+                "type": "uint256",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "ReceivedFallback",
+        "inputs": [
+            {
+                "name": "sender",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "BetSold",
+        "inputs": [
+            {
+                "name": "prediction_id",
+                "type": "uint256",
+                "indexed": true
+            },
+            {
+                "name": "match_id",
+                "type": "uint256",
+                "indexed": false
+            },
+            {
+                "name": "_from",
+                "type": "address",
+                "indexed": false
+            },
+            {
+                "name": "to",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "BetSellInitiated",
+        "inputs": [
+            {
+                "name": "prediction_id",
+                "type": "uint256",
+                "indexed": true
+            },
+            {
+                "name": "match_id",
+                "type": "uint256",
+                "indexed": false
+            },
+            {
+                "name": "by",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "SellingPriceChanged",
+        "inputs": [
+            {
+                "name": "prediction_id",
+                "type": "uint256",
+                "indexed": true
+            },
+            {
+                "name": "match_id",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "Deposited",
+        "inputs": [
+            {
+                "name": "_from",
+                "type": "address",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "AdminAdded",
+        "inputs": [
+            {
+                "name": "admin",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "AdminRemoved",
+        "inputs": [
+            {
+                "name": "admin",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "OwnershipTransferInitiated",
+        "inputs": [
+            {
+                "name": "current_owner",
+                "type": "address",
+                "indexed": false
+            },
+            {
+                "name": "future_owner",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "OwnershipTransferCompleted",
+        "inputs": [
+            {
+                "name": "previous_owner",
+                "type": "address",
+                "indexed": false
+            },
+            {
+                "name": "new_owner",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "function",
+        "name": "set_admin",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "new_admin",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "remove_admin",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "admin_address",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "initiate_transfer_ownership",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "new_owner",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "accept_ownership",
+        "stateMutability": "nonpayable",
+        "inputs": [],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "set_fee",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_fee_percent",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "admin",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "owner",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "pending_owner",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "fee_percent",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "deposit",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "lay",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "_result",
+                "type": "uint256"
+            },
+            {
+                "name": "wager_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "back",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "prediction_index",
+                "type": "uint256"
+            },
+            {
+                "name": "_amount",
+                "type": "uint256"
+            },
+            {
+                "name": "_result",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "register_game",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "timestamp",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "settle_bets",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "_start",
+                "type": "uint256"
+            },
+            {
+                "name": "_stop",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "initiate_sell",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_amount",
+                "type": "uint256"
+            },
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "_index",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "change_selling_price",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_amount",
+                "type": "uint256"
+            },
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "_index",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "buy_prediction",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "_counter",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "withdraw",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "get_prediction",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "_counter",
+                "type": "uint256"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "tuple",
+                "components": [
+                    {
+                        "name": "index",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "layer",
+                        "type": "address"
+                    },
+                    {
+                        "name": "match_id",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "result",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "settled",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "opponent",
+                        "type": "tuple[]",
+                        "components": [
+                            {
+                                "name": "user",
+                                "type": "address"
+                            },
+                            {
+                                "name": "amount",
+                                "type": "uint256"
+                            },
+                            {
+                                "name": "result",
+                                "type": "uint256"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "total_opponent_wager",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "f_matched",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "p_matched",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "for_sale",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "sold",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "price",
+                        "type": "uint256"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "getContractBalance",
+        "stateMutability": "nonpayable",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "get_revenue",
+        "stateMutability": "nonpayable",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "fallback",
+        "stateMutability": "payable"
+    },
+    {
+        "type": "function",
+        "name": "test_resolve",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "_result",
+                "type": "uint256"
+            },
+            {
+                "name": "_status",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "games",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "uint256"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "tuple",
+                "components": [
+                    {
+                        "name": "match_id",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "resolved",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "result",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "status",
+                        "type": "uint256"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "token",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "match_predictions",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "uint256"
+            },
+            {
+                "name": "arg1",
+                "type": "uint256"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "tuple",
+                "components": [
+                    {
+                        "name": "index",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "layer",
+                        "type": "address"
+                    },
+                    {
+                        "name": "match_id",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "result",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "amount",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "settled",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "opponent",
+                        "type": "tuple[]",
+                        "components": [
+                            {
+                                "name": "user",
+                                "type": "address"
+                            },
+                            {
+                                "name": "amount",
+                                "type": "uint256"
+                            },
+                            {
+                                "name": "result",
+                                "type": "uint256"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "total_opponent_wager",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "f_matched",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "p_matched",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "for_sale",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "sold",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "price",
+                        "type": "uint256"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "balance_of",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "counter",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "uint256"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "constructor",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_address",
+                "type": "address"
+            }
+        ]
+    }
+]

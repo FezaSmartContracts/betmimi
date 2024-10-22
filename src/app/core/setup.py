@@ -3,10 +3,12 @@ from contextlib import _AsyncGeneratorContextManager, asynccontextmanager
 from typing import Any
 
 import anyio
+import anyio.to_thread
 import fastapi
 import redis.asyncio as redis
 from arq import create_pool
 from arq.connections import RedisSettings
+from arq.worker import Worker
 from fastapi import APIRouter, Depends, FastAPI
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
@@ -33,7 +35,6 @@ from ..models import *
 async def create_tables() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
-
 
 # -------------- cache --------------
 async def create_redis_cache_pool() -> None:
@@ -99,6 +100,7 @@ def lifespan_factory(
 
         if isinstance(settings, RedisRateLimiterSettings):
             await create_redis_rate_limit_pool()
+
 
         yield
 
