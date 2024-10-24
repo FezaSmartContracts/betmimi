@@ -65,5 +65,5 @@ async def create_tasks(message: str) -> dict[str, str]:
     dict[str, str]
         A dictionary containing the ID of the created task.
     """
-    job = await queue.pool.enqueue_job("subscribe_to_events", message)  # type: ignore
+    job = await queue.pool.enqueue_job("process_event", message)  # type: ignore
     return {"id": job.job_id}

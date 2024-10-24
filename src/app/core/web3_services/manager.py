@@ -1,61 +1,117 @@
-import websockets
-import logging
+from typing import Dict
+from eth_typing import HexStr
 import asyncio
-from web3 import AsyncWeb3, WebSocketProvider
-from asyncio import TimeoutError, sleep
-logging.basicConfig(level=logging.INFO)
+from web3 import AsyncWeb3
+from web3.providers.persistent import WebSocketProvider
+from web3.types import SubscriptionType
+from websockets import ConnectionClosed, ConnectionClosedError
+import logging
 
-from ..worker.settings import settings
-from .utils import subscribe_to_usdtv1_events, reschedule_jobs
+from ...core.utils import queue
+from ...models.job import Job
 
-logger = logging.getLogger(__name__)
+class SubscriptionHandler:
+    w3_socket: AsyncWeb3 = None
+    callbacks: Dict[HexStr, callable] = {}
 
-RETRY_DELAY = 5
+    def __init__(self, wss_url):
+        self.wss_url = wss_url
 
-
-class ContractWebSocketManager:
-    """Handles WebSocket connection and event listening for different contracts."""
-    
-    def __init__(self):
-        self.API_KEY = settings.ALCHEMY_API_KEY
-        self.PROVIDER_URI = f"wss://arb-sepolia.g.alchemy.com/v2/{self.API_KEY}"
-
-     
-    async def subscribe_to_events(self):
+    async def process_subscriptions(self) -> None:
         """
-        Method for subscribing to events. 
-        
-        Please note in an attempt to create an indefinite websocket connection, 
-        I use a `for` loop instead of a `while` loop. A lot of controversies;
-        1. https://stackoverflow.com/questions/56161595/how-to-use-async-for-in-python
-        2. https://web3py.readthedocs.io/en/stable/providers.html#using-persistent-connection-providers
+        Connect to the WebSocket and listen for subscription messages.
         """
 
-        logging.info("Connecting to WebSocket...")
-        async for w3 in AsyncWeb3(WebSocketProvider(self.PROVIDER_URI)):
+        async for self.w3_socket in AsyncWeb3(WebSocketProvider(self.wss_url)):
             try:
-                logging.info(f"Successfully connected to: {self.PROVIDER_URI}")
+                async for message in self.w3_socket.socket.process_subscriptions():
+                    try:
+                        self.callbacks[message["subscription"]](message["result"])
+                        logging.info(f"Wow! {message}")
+                    except ValueError as e:
+                        try:
+                            logging.error(f"Callback for {message['subscription']} not found")
+                        except ValueError as e:
+                            logging.error(f"Unexpected response from RPC: {e}")
 
-                await subscribe_to_usdtv1_events(w3)
-                # ----more subscriptions here
-
-            except websockets.ConnectionClosed as e:
-                logging.error(f"WebSocket connection closed: {e}. Reconnecting in {RETRY_DELAY} seconds...")
-                await sleep(RETRY_DELAY)
+            except (ConnectionClosedError, ConnectionClosed) as e:
+                logging.error(f"Connection interupt due to {e}. Reconnecting...")
                 continue
+            except asyncio.CancelledError:
+                logging.error("Cancelling subscriptions")
+                for sub_id in self.callbacks.keys():
+                    await self.w3_socket.eth.unsubscribe(sub_id)
+                break
+        
+    async def subscribe(
+        self, callback: callable, event_type: SubscriptionType, **event_params
+    ) -> HexStr:
+        """
+        Subscribes to the given event type with the given callback.
+        Must be called while process_subscriptions() task is running
 
-            except asyncio.TimeoutError as e:
-                logging.error(f"WebSocket connection timeout: {e}. Reconnecting in {RETRY_DELAY} seconds...")
-                await sleep(RETRY_DELAY)
+        :param callback: The function to call when the event is received
+        :param event_type: The event type to subscribe to
+        :param event_params: Additional parameters to pass to the subscription
+        :return: The subscription ID
+        """
+        if self.is_connected():
+            sub_id = await self.w3_socket.eth.subscribe(event_type, event_params)
+            logging.info(f"Subscribed to {sub_id}")
+            self.callbacks[sub_id] = callback
+            return sub_id
+        else:
+            raise RuntimeError(
+                "Websocket connection not established, it's not possible to subscribe"
+            )
 
-            except Exception as e:
-                logging.error(f"Unexpected error: {e}. Reconnecting in {RETRY_DELAY} seconds...")
-                await sleep(RETRY_DELAY)
+    async def unsubscribe(self, sub_id: HexStr) -> None:
+        """
+        Unsubscribes from a subscription identified by sub_id.
+        Must be called while process_subscriptions() task is running
+
+        :param sub_id: The subscription ID to unsubscribe from
+        :return: None
+        """
+        if self.is_connected():
+            await self.w3_socket.eth.unsubscribe(sub_id)
+            self.callbacks.pop(sub_id)
+        else:
+            raise RuntimeError(
+                "Websocket connection not established, it's not possible to unsubscribe"
+            )
+
+    def is_connected(self) -> bool:
+        return self.w3_socket is not None
 
 
-    async def unsubscribe_from_all_events(self):
-        if None:
-            pass
 
-        async with AsyncWeb3(WebSocketProvider(self.PROVIDER_URI)) as w3:
-            pass
+class WebSocketManager:
+    _instance = None
+
+    def __new__(cls, wss_uri):
+        if cls._instance is None:
+            cls._instance = super(WebSocketManager, cls).__new__(cls)
+            cls._instance.ws_handler = SubscriptionHandler(wss_uri)
+            cls._instance.subscription_task = None
+        return cls._instance
+
+    async def start_processing(self):
+        """
+        Starts the subscription processing task if it's not already running.
+        """
+        if not self.subscription_task:
+            self.subscription_task = asyncio.create_task(self.ws_handler.process_subscriptions())
+            logging.info("WebSocket subscription processing started.")
+
+    async def subscribe(self, callback: callable, event_type: str, **event_params):
+        """
+        Subscribe to an event using the existing connection.
+        """
+        return await self.ws_handler.subscribe(callback, event_type, **event_params)
+
+    async def is_connected(self) -> bool:
+        """
+        Check if the WebSocket is connected.
+        """
+        return self.ws_handler.is_connected()

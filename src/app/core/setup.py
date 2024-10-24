@@ -5,6 +5,8 @@ from typing import Any
 import anyio
 import anyio.to_thread
 import fastapi
+import asyncio
+from web3 import AsyncWeb3, WebSocketProvider
 import redis.asyncio as redis
 from arq import create_pool
 from arq.connections import RedisSettings
@@ -16,6 +18,7 @@ from sqlmodel import SQLModel
 
 from ..api.dependencies import get_current_superuser
 from ..middleware.client_cache_middleware import ClientCacheMiddleware
+from ..core.web3_services.manager import WebSocketManager
 from .config import (
     AppSettings,
     ClientSideCacheSettings,
@@ -25,16 +28,28 @@ from .config import (
     RedisCacheSettings,
     RedisQueueSettings,
     RedisRateLimiterSettings,
+    AlchemySettings,
     settings,
 )
 from .db.database import async_engine as engine
 from .utils import cache, queue, rate_limit
 from ..models import *
 
+WSSL_URI = f"wss://arb-sepolia.g.alchemy.com/v2/{settings.ALCHEMY_API_KEY}"
+
 # -------------- database --------------
 async def create_tables() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
+
+#---------websocket_connection----------
+async def connect_web_socket():
+    ws_manager = WebSocketManager(WSSL_URI)
+    await ws_manager.start_processing()
+
+async def manually_close_websocket():
+    w3 = AsyncWeb3(WebSocketProvider(WSSL_URI))
+    await w3.provider.disconnect()
 
 # -------------- cache --------------
 async def create_redis_cache_pool() -> None:
@@ -79,6 +94,7 @@ def lifespan_factory(
         | ClientSideCacheSettings
         | RedisQueueSettings
         | RedisRateLimiterSettings
+        | AlchemySettings
         | EnvironmentSettings
     ),
     create_tables_on_start: bool = True,
@@ -101,6 +117,9 @@ def lifespan_factory(
         if isinstance(settings, RedisRateLimiterSettings):
             await create_redis_rate_limit_pool()
 
+        if isinstance(settings, AlchemySettings):
+            await connect_web_socket()
+
 
         yield
 
@@ -112,6 +131,9 @@ def lifespan_factory(
 
         if isinstance(settings, RedisRateLimiterSettings):
             await close_redis_rate_limit_pool()
+
+        if isinstance(settings, AlchemySettings):
+            await manually_close_websocket()
 
     return lifespan
 
