@@ -42,7 +42,7 @@ async def process_event(ctx: Worker, name: str) -> str:
 
         await subs_handler.start_processing()
 
-        while not subs_handler.is_connected():
+        while not await subs_handler.is_connected():
             logging.info("Not connected")
             await asyncio.sleep(1)
         logging.info("Congs, Connected!")
