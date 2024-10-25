@@ -43,12 +43,12 @@ async def create_tables() -> None:
         await conn.run_sync(SQLModel.metadata.create_all)
 
 #---------websocket_connection----------
-async def connect_web_socket():
-    ws_manager = WebSocketManager(WSSL_URI)
+async def connect_alchemy_web_socket():
+    ws_manager = WebSocketManager(WSSL_URI, "alchemy_logs_queue")
     await ws_manager.start_processing()
 
-async def manually_close_websocket():
-    w3 = AsyncWeb3(WebSocketProvider(WSSL_URI))
+async def manually_close_alchemy_websocket():
+    w3 = AsyncWeb3(WebSocketProvider(WSSL_URI, "alchemy_logs_queue"))
     await w3.provider.disconnect()
 
 # -------------- cache --------------
@@ -118,7 +118,7 @@ def lifespan_factory(
             await create_redis_rate_limit_pool()
 
         if isinstance(settings, AlchemySettings):
-            await connect_web_socket()
+            await connect_alchemy_web_socket()
 
 
         yield
@@ -133,7 +133,7 @@ def lifespan_factory(
             await close_redis_rate_limit_pool()
 
         if isinstance(settings, AlchemySettings):
-            await manually_close_websocket()
+            await manually_close_alchemy_websocket()
 
     return lifespan
 

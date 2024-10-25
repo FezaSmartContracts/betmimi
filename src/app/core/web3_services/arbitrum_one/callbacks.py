@@ -6,9 +6,9 @@ from typing import Any, Dict
 from web3 import AsyncWeb3, WebSocketProvider
 from eth_abi import decode
 
-from ...core.utils import queue
-from ...models.job import Job
-from .manager import SubscriptionHandler
+from ...utils import queue
+from ....models.job import Job
+from ..manager import SubscriptionHandler
 
 
 logging.basicConfig(level=logging.INFO)

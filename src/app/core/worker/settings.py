@@ -5,7 +5,8 @@ from .functions import (
     sample_background_task,
     shutdown,
     startup,
-    process_event
+    process_event,
+    process_data
 )
 
 REDIS_QUEUE_HOST = settings.REDIS_QUEUE_HOST
@@ -13,7 +14,7 @@ REDIS_QUEUE_PORT = settings.REDIS_QUEUE_PORT
 
 
 class WorkerSettings:
-    functions = [sample_background_task, process_event]
+    functions = [sample_background_task, process_event, process_data]
     redis_settings = RedisSettings(host=REDIS_QUEUE_HOST, port=REDIS_QUEUE_PORT)
     on_startup = startup
     on_shutdown = shutdown

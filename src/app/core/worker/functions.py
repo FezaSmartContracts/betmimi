@@ -5,12 +5,11 @@ import uvloop
 from arq.worker import Worker
 from web3 import AsyncWeb3
 from eth_typing import HexStr
-from ..web3_services.manager import SubscriptionHandler
 from ...core.config import settings
 from ...core.utils import queue
 from ...models.job import Job
 from ..web3_services.manager import WebSocketManager
-#from ..web3_services.utils import subscribe_to_usdtv1_events
+from ..web3_services.processor import BatchProcessor
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -38,7 +37,7 @@ async def process_event(ctx: Worker, name: str) -> str:
             "topics": [deposited_event_topic]
         }
         # Get the singleton instance of the WebSocketManager
-        subs_handler = WebSocketManager(WSS_URI)
+        subs_handler = WebSocketManager(WSS_URI, "alchemy_logs_queue")
 
         await subs_handler.start_processing()
 
@@ -61,6 +60,17 @@ async def process_event(ctx: Worker, name: str) -> str:
         logging.error("Cancelled!")
         return f"Task {name} is complete!"
     
+async def process_data(ctx: Worker, name: str) -> str:
+    redis_connection = ctx['redis']
+    bp = BatchProcessor("alchemy_logs_queue", redis_connection)
+    try:
+       await bp.batch_process_logs()
+    except asyncio.CancelledError as e:
+        logging.error(f"Cancelled: {e}")
+    except Exception as e:
+        logging.error(f"Unknown Error: {e}")
+    return f"Task {name} is complete!"
+
     
 
 
