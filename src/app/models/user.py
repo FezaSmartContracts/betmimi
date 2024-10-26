@@ -23,8 +23,8 @@ class User(SQLModel, table=True):
         server_onupdate=text("CURRENT_TIMESTAMP"),
     ))
 
-    balance: Optional["UserBalance"] = Relationship(back_populates="user", sa_relationship_kwargs={"lazy": "joined"})
-    predictions: List["Prediction"] = Relationship(back_populates="user", sa_relationship_kwargs={"lazy": "joined"})
+    balance: Optional["UserBalance"] = Relationship(back_populates="user")
+    predictions: List["Prediction"] = Relationship(back_populates="user")
 
 
 
@@ -77,7 +77,7 @@ class Prediction(SQLModel, table=True):
     ))
 
     user: Optional["User"] = Relationship(back_populates="predictions")
-    opponents: List["Opponent"] = Relationship(back_populates="prediction", sa_relationship_kwargs={"lazy": "joined"})
+    opponents: List["Opponent"] = Relationship(back_populates="prediction")
 
 
 

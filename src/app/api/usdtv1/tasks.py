@@ -48,7 +48,7 @@ async def create_task(message: str) -> dict[str, str]:
     dict[str, str]
         A dictionary containing the ID of the created task.
     """
-    job = await queue.pool.enqueue_job("process_data", message)  # type: ignore
+    job = await queue.pool.enqueue_job("subscribe_to_winorloss_arb_usdtv1_events", message)  # type: ignore
     return {"id": job.job_id}
 
 @router.post("/tasks", response_model=Job, status_code=201)

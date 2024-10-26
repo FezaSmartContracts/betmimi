@@ -48,7 +48,7 @@ async def connect_alchemy_web_socket():
     await ws_manager.start_processing()
 
 async def manually_close_alchemy_websocket():
-    w3 = AsyncWeb3(WebSocketProvider(WSSL_URI, "alchemy_logs_queue"))
+    w3 = AsyncWeb3(WebSocketProvider(WSSL_URI))
     await w3.provider.disconnect()
 
 # -------------- cache --------------
