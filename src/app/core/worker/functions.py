@@ -32,7 +32,9 @@ async def subscribe_to_winorloss_arb_usdtv1_events(ctx: Worker, name: str) -> st
     try:
 
         WSS_URI = f"wss://arb-sepolia.g.alchemy.com/v2/{settings.ALCHEMY_API_KEY}"
-        _address = load_contract_address("WinOrLoss")
+        address_relative_path = "../artifacts/arbitrum/deployments.json"
+        _key = "WinOrLoss"
+        _address = load_contract_address(_key, address_relative_path)
         CONTRACT_ADDRESS = _address
 
         # Get the singleton instance of the WebSocketManager

@@ -23,7 +23,7 @@
             {
                 "name": "result",
                 "type": "uint256",
-                "indexed": false
+                "indexed": true
             }
         ],
         "anonymous": false
@@ -46,6 +46,16 @@
                 "name": "game_id",
                 "type": "uint256",
                 "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": false
+            },
+            {
+                "name": "result",
+                "type": "uint256",
+                "indexed": false
             }
         ],
         "anonymous": false
@@ -68,6 +78,16 @@
                 "name": "game_id",
                 "type": "uint256",
                 "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": false
+            },
+            {
+                "name": "result",
+                "type": "uint256",
+                "indexed": false
             }
         ],
         "anonymous": false
@@ -84,7 +104,7 @@
             {
                 "name": "amount",
                 "type": "uint256",
-                "indexed": false
+                "indexed": true
             }
         ],
         "anonymous": false
@@ -101,7 +121,7 @@
             {
                 "name": "match_id",
                 "type": "uint256",
-                "indexed": false
+                "indexed": true
             }
         ],
         "anonymous": false
@@ -118,7 +138,7 @@
             {
                 "name": "amount",
                 "type": "uint256",
-                "indexed": false
+                "indexed": true
             }
         ],
         "anonymous": false
@@ -135,17 +155,12 @@
             {
                 "name": "match_id",
                 "type": "uint256",
-                "indexed": false
-            },
-            {
-                "name": "_from",
-                "type": "address",
-                "indexed": false
+                "indexed": true
             },
             {
                 "name": "to",
                 "type": "address",
-                "indexed": false
+                "indexed": true
             }
         ],
         "anonymous": false
@@ -162,12 +177,12 @@
             {
                 "name": "match_id",
                 "type": "uint256",
-                "indexed": false
+                "indexed": true
             },
             {
-                "name": "by",
-                "type": "address",
-                "indexed": false
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
             }
         ],
         "anonymous": false
@@ -185,6 +200,11 @@
                 "name": "match_id",
                 "type": "uint256",
                 "indexed": true
+            },
+            {
+                "name": "new_price",
+                "type": "uint256",
+                "indexed": true
             }
         ],
         "anonymous": false
@@ -196,6 +216,11 @@
             {
                 "name": "_from",
                 "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
                 "indexed": true
             }
         ],

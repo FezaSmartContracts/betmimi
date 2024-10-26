@@ -8,8 +8,17 @@ from eth_utils import keccak
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def load_abi(file_path: str) -> Dict[str, Any]:
-    """Load contract ABI from a JSON file."""
+def load_abi(relative_path: str) -> Dict[str, Any]:
+    """Load contract ABI from a JSON file located relative to the calling file.
+    
+    In the calling file, Pass the relative path to the ABI file based on the module's location
+
+    Forexample: abi = `load_abi("../artifacts/arbitrum/MyContract.json")`
+    >>>
+    """
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, relative_path)
+    
     try:
         with open(file_path, "r") as file:
             return json.load(file)
@@ -20,10 +29,17 @@ def load_abi(file_path: str) -> Dict[str, Any]:
         logger.error(f"Failed to decode JSON from file: {file_path}")
         raise
 
-def load_contract_address(key: str) -> str:
-    """Fetch contract address by key."""
+def load_contract_address(key: str, relative_path: str) -> str:
+    """
+    Fetch contract address by key.
+
+    In the calling file, Pass the relative path to the ABI file based on the module's location
+
+    Forexample: abi = `load_abi("../artifacts/arbitrum/deployments.json")`
+    >>>
+    """
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, '../artifacts/deployments.json')
+    file_path = os.path.join(base_dir, relative_path)
     try:
         with open(file_path, 'r') as file:
             contracts = json.load(file)
