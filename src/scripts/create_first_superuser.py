@@ -2,7 +2,7 @@ import asyncio
 import logging
 from datetime import timezone, datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, insert, select
+from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Float, Table, insert, select
 
 from ..app.core.config import settings
 from ..app.core.db.database import AsyncSession, async_engine, local_session
@@ -17,6 +17,7 @@ async def create_first_user(session: AsyncSession) -> None:
         public_address = settings.ADMIN_PUBLIC_ADDRESS.lower()
         email = settings.ADMIN_EMAIL
         nonce = generate_random()
+        balance = 0.00
 
         query = select(User).filter_by(public_address=public_address)
         result = await session.execute(query)
@@ -30,6 +31,7 @@ async def create_first_user(session: AsyncSession) -> None:
                 Column("id", Integer, primary_key=True, autoincrement=True, nullable=False),
                 Column("public_address", String(42), nullable=False, unique=True, index=True),
                 Column("nonce", String(4), nullable=True, index=True),
+                Column("balance", Float(precision=2), nullable=False, index=True),
                 Column("email", String(50), nullable=True, unique=True, index=True),
                 Column("created_at", DateTime(timezone=True), default=lambda: datetime.now(), nullable=False),
                 Column("updated_at", DateTime, nullable=True),
@@ -39,6 +41,7 @@ async def create_first_user(session: AsyncSession) -> None:
             data = {
                 "public_address": public_address,
                 "nonce": nonce,
+                "balance": balance,
                 "email": email,
                 "is_superuser": True,
                 "created_at": datetime.now(),

@@ -17,14 +17,11 @@ from ...schemas.custom import Date
 from ...models.user import (
     Opponent,
     Prediction,
-    User,
-    UserBalance
+    User
 )
 
 from ...schemas.users import (
     UserRead,
-    UserBalance,
-    UserBalanceCreate, 
     UserBalanceRead,
     UserPublicAddress,
     UserNonce
@@ -245,7 +242,7 @@ async def prediction_create(
         db,
         PredictionCreate(
         user_id=wallet["id"],  # Link prediction to the found/created user
-        index=prediction_data.index,  # Assuming index is part of PredictionCreate
+        index=prediction_data.index,  # Assuming index is part of PredictionCreate.
         layer=prediction_data.layer.lower(),
         match_id=prediction_data.match_id,
         result=prediction_data.result,

@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional
 from datetime import datetime
-from ..models.user import User, UserBalance, Prediction
+from ..models.user import User, Prediction
 
 
 #-------------User schemas--------------------#
@@ -28,39 +28,30 @@ class UserReadInternal(UserRead):
     email: Optional[str] = None
     nonce: str
 
-class ReadUserBalance(SQLModel):
-    id: int
-    public_address: str
-    created_at: datetime
-    updated_at: datetime
-    balance: "UserBalance"
-
 class UserNonce(SQLModel):
     nonce: str
 
 class UserCreate(SQLModel):
     public_address: str
-    nonce: Optional[str] = Field(default=None)
+    nonce: str
 
 class UserEmailUpdate(SQLModel):
     email: Optional[str] = None
 
-class UserUpdateInternal(UserEmailUpdate):
+class UserUpdate(SQLModel):
     nonce: str
+
+class UpdateUserBalance(SQLModel):
+    balance: float
+
+class UserUpdateInternal(UserUpdate):
+    pass
 
 class AdminUpdate(SQLModel):
     is_superuser: bool
 
 #-----------Balance schemas-------------#
-class UserBalanceUpdate(SQLModel):
-    amount: float = Field(default=0.0)
 
 class UserBalanceRead(SQLModel):
+    public_address: str
     amount: float
-
-class UserBalanceCreate(SQLModel):
-    user_id: int
-    amount: float
-
-class UserBalanceUpdateInternal(UserBalanceUpdate):
-    pass

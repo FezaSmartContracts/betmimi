@@ -1,14 +1,21 @@
 from datetime import datetime
 from typing import Optional, List
 
-from sqlmodel import Column, SQLModel, Field, Relationship, TIMESTAMP, text
+from sqlmodel import (
+    Column, SQLModel, Field, Relationship, TIMESTAMP, text, DECIMAL
+)
 
 
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    public_address: str = Field(..., unique=True, min_length=42, max_length=42, schema_extra={"example": "0x...fg"})
-    nonce: str = Field(default=None)
+    public_address: str = Field(
+        ..., unique=True, min_length=42, max_length=42, index=True, schema_extra={"example": "0x...fg"}
+    )
+    nonce: str = Field(default=None, index=True)
+    balance: float = Field(
+        sa_column=Column(DECIMAL(precision=10, scale=2), default=0.00, index=True)
+    )
     is_superuser: bool = Field(default=False)
     email: Optional[str] = Field(..., nullable=True, unique=True, schema_extra={"example": "moses@example.com"})
     created_at: Optional[datetime] = Field(sa_column=Column(
@@ -23,28 +30,7 @@ class User(SQLModel, table=True):
         server_onupdate=text("CURRENT_TIMESTAMP"),
     ))
 
-    balance: Optional["UserBalance"] = Relationship(back_populates="user")
     predictions: List["Prediction"] = Relationship(back_populates="user")
-
-
-
-class UserBalance(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id", unique=True)
-    amount: float = Field(default=0.0)
-    created_at: Optional[datetime] = Field(sa_column=Column(
-        TIMESTAMP(timezone=True),
-        nullable=True,
-        server_default=text("CURRENT_TIMESTAMP"),
-    ))
-    updated_at: Optional[datetime] = Field(sa_column=Column(
-        TIMESTAMP(timezone=True),
-        nullable=True,
-        server_default=text("CURRENT_TIMESTAMP"),
-        server_onupdate=text("CURRENT_TIMESTAMP"),
-    ))
-
-    user: Optional["User"] = Relationship(back_populates="balance")
 
 
 
@@ -84,8 +70,8 @@ class Prediction(SQLModel, table=True):
 class Opponent(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     prediction_id: int = Field(foreign_key="prediction.id")
-    opponent_address: str
-    opponent_wager: int
+    opponent_address: str = Field(index=True)
+    opponent_wager: int = Field(index=True)
     result: int
     created_at: Optional[datetime] = Field(sa_column=Column(
         TIMESTAMP(timezone=True),

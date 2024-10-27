@@ -117,7 +117,7 @@ class WebSocketManager:
         """
         if not self.subscription_task:
             self.subscription_task = asyncio.create_task(self.ws_handler.process_subscriptions(None))
-            logging.info("WebSocket subscription processing started.")
+            logging.info("Initial Websocket Connection Starting.")
     
     async def subscribe(self, callback: callable, event_type: str, **event_params):
         """

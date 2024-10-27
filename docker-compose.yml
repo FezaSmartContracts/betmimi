@@ -57,7 +57,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh -c "alembic revision --autogenerate -m 'Auto migration' && alembic upgrade head"
+    command: ["./wait-for-it.sh", "db:5432", "--", "sh", "-c", "alembic upgrade head"]
+
     env_file:
       - ./src/.env
     depends_on:
@@ -102,6 +103,7 @@ services:
       - ./src/.env
     depends_on:
       - db
+      - migrations  # Ensures migrations are applied before creating superuser
     command: python -m src.scripts.create_first_superuser
     volumes:
       - ./src:/code/src

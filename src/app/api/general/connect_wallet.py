@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Annotated
+import logging
 
 from fastapi import APIRouter, Depends, Request, Response, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +18,9 @@ from ...schemas.users import (
     UserCreate,
     UserPublicAddress,
     UserReadNonce,
-    UserUpdateInternal
+    UserUpdateInternal,
+    UserBalanceRead,
+    UserRead
 )
 from ...core.security import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -36,7 +39,7 @@ async def fetch_user_nonce(
 ) -> dict:
     
     """
-    - Primarily meant for fethcing user nonce. However, it creates a user if they don't exist
+    - Primarily meant for fethcing user nonce. However, it creates a user and his balance if they don't exist
     - Eventually returns user `nonce`
     """
     
@@ -52,6 +55,7 @@ async def fetch_user_nonce(
     )
 
     if wallet is None:
+        
         new_user_nonce: UserNonce = await crud_users.create(
             db,
             UserCreate(public_address=public_address, nonce=_nonce)
@@ -100,12 +104,12 @@ async def connect_user_wallet(
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = await create_access_token(
-        data={"sub": fetched_user.public_address}, 
+        data={"sub": fetched_user.id}, 
         expires_delta=access_token_expires
     )
 
     # Generate refresh token and set it as a secure HTTP-only cookie
-    refresh_token = await create_refresh_token(data={"sub": fetched_user.public_address})
+    refresh_token = await create_refresh_token(data={"sub": fetched_user.id})
     max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
     
     response.set_cookie(

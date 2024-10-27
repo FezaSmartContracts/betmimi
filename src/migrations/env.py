@@ -7,7 +7,7 @@ from sqlmodel import SQLModel # noqa
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from app.models.user import User, UserBalance, Prediction, Opponent
+from app.models.user import User, Prediction, Opponent
 from app.models.rate_limit import RateLimit
 from app.core.db.token_blacklist import TokenBlacklist
 

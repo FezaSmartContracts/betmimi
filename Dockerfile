@@ -23,8 +23,14 @@ COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
+# Copy the wait-for-it script
+COPY wait-for-it.sh /code/wait-for-it.sh
+RUN chmod +x /code/wait-for-it.sh
+
+
 COPY ./src/app /code/app
 
-# -------- replace with comment to run with gunicorn --------
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-# CMD ["gunicorn", "app.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]
+# Start the application using wait-for-it to ensure dependencies are ready
+CMD ["/code/wait-for-it.sh", "db:5432", "--", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Alternative to run with gunicorn:
+# CMD ["/code/wait-for-it.sh", "db:5432", "--", "gunicorn", "app.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]
