@@ -1,7 +1,4 @@
-from sqlmodel import SQLModel, Field
-from typing import Optional, List
-from datetime import datetime
-from ..models.user import Opponent
+from sqlmodel import SQLModel
 
 #---------------Opponent schemas------------#
 class OpponentCreate(SQLModel):
@@ -25,3 +22,6 @@ class OpponentUpdate(SQLModel):
 
 class OpponentUpdateInternal(OpponentUpdate):
     pass
+
+class BackerAddress(SQLModel):
+    public_address: str

@@ -1,22 +1,19 @@
 import asyncio
-import logging
-import time
 
 import uvloop
 from arq.worker import Worker
-from arq import cron
-from web3 import AsyncWeb3
 from eth_typing import HexStr
 from ...core.config import settings
 from ...core.utils import queue
 from ...models.job import Job
+from ...core.logger import logging
 from ..web3_services.manager import WebSocketManager
 from ..web3_services.processor import BatchProcessor
 from ..web3_services.utils import load_contract_address
 
-asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+logger = logging.getLogger(__name__)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 
 # -------- background tasks --------
@@ -25,7 +22,7 @@ async def sample_background_task(ctx: Worker, name: str) -> str:
     return f"Task {name} is complete!"
 
 def callback_logs(message):
-    logging.info(f"New log received: {message}")
+    logger.info(f"New log received: {message}")
 
 
 async def subscribe_to_winorloss_arb_usdtv1_events(ctx: Worker, name: str) -> str:
@@ -42,42 +39,42 @@ async def subscribe_to_winorloss_arb_usdtv1_events(ctx: Worker, name: str) -> st
         await subs_handler.start_processing()
 
         while not await subs_handler.is_connected():
-            logging.info("Not connected")
+            logger.info("Not connected")
             await asyncio.sleep(5)
-        logging.info("Websocket is sucessfully Connected!")
+        logger.info("Websocket is sucessfully Connected!")
 
         await subs_handler.subscribe(
             callback_logs, "logs", address=CONTRACT_ADDRESS
         )
     except Exception as e:
-        logging.error(f"Failed to subscribe to events: {e}")
+        logger.error(f"Failed to subscribe to events: {e}")
     except asyncio.TimeoutError:
-        logging.error("Time Out!")
+        logger.error("Time Out!")
     except asyncio.CancelledError:
-        logging.error("Cancelled!")
+        logger.error("Cancelled!")
         return f"Task {name} is complete!"
     
 async def process_data(ctx: Worker):
 
-    logging.info("Process Data Cron job started")
+    logger.info("Process Data Cron job started")
     redis_connection = ctx['redis']
     bp = BatchProcessor("alchemy_logs_queue", "alchemy_inprocessing_queue", redis_connection)
 
     try:
         await bp.batch_process_logs()
     except asyncio.CancelledError as e:
-        logging.error(f"Cancelled: {e}")
+        logger.error(f"Cancelled: {e}")
     except Exception as e:
-        logging.error(f"Unknown Error: {e}")
-    logging.info(f"Task completed its 5-minute run.")
+        logger.error(f"Unknown Error: {e}")
+    logger.info(f"Task completed its 5-minute run.")
 
     
 
 
 # -------- base functions --------
 async def startup(ctx: Worker) -> None:
-    logging.info("Worker Started")
+    logger.info("Worker Started")
 
 
 async def shutdown(ctx: Worker) -> None:
-    logging.info("Worker end")
+    logger.info("Worker end")

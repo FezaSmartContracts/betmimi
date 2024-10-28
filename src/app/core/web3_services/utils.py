@@ -1,11 +1,11 @@
 import os
 import json
-import logging
 from typing import Any, Dict, List
 from hexbytes import HexBytes
 from eth_utils import keccak
 
-logging.basicConfig(level=logging.INFO)
+from ...core.logger import logging
+
 logger = logging.getLogger(__name__)
 
 def load_abi(relative_path: str) -> Dict[str, Any]:

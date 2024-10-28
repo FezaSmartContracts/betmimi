@@ -7,7 +7,9 @@ from websockets import ConnectionClosed, ConnectionClosedError
 from redis import Redis
 import aioredis
 import pickle
-import logging
+from ...core.logger import logging
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -35,15 +37,15 @@ class BatchProcessor:
                         if callback_function:
                             callback = pickle.loads(callback_function)
                             callback(payload)
-                        logging.info("Processed log successfully.")
+                        logger.info("Processed log successfully.")
                         await self.redis.lrem(self.inprocess_queue_name, 0, log)
                     except Exception as e:
-                        logging.error(f"Failed to process log: {e}")
+                        logger.error(f"Failed to process log: {e}")
                 else:
-                    logging.info("Timeout occurred, no items to move.")
+                    logger.info("Timeout occurred, no items to move.")
             except ConnectionError as conn_err:
-                logging.error(f"Redis connection error: {conn_err}")
+                logger.error(f"Redis connection error: {conn_err}")
             except TimeoutError as timeout_err:
-                logging.error(f"Redis timeout error: {timeout_err}")
+                logger.error(f"Redis timeout error: {timeout_err}")
             except Exception as e:
-                logging.error(f"Unexpected error: {e}")
+                logger.error(f"Unexpected error: {e}")

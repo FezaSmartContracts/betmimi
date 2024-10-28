@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, Annotated
 from hexbytes import HexBytes
 from eth_abi.abi import decode
@@ -8,16 +7,15 @@ from fastapi import Depends
 from ..utils import load_abi, get_event_topic
 from ....core.db.database import async_get_db
 from ....core.exceptions.http_exceptions import DuplicateValueException, NotFoundException
+from ....core.logger import logging
 from ....crud.crud_predictions import crud_predictions
 from ....crud.crud_users import crud_users
 from ....crud.crud_opponent import crud_opponent
 from ....schemas.users import (
     UserRead,
-    UserBalanceCreate,
-    UserBalanceRead,
-    UserBalanceUpdateInternal,
-    UserBalanceUpdate,
-    ReadUserBalance
+    UserUpdate,
+    UserUpdateInternal,
+    UserBalanceRead
 )
 from ....schemas.predictions import (
     PredictionCreate,
@@ -32,9 +30,9 @@ from ....schemas.opponents import (
 from ....models.user import (
     User,
     Prediction,
-    UserBalance,
     Opponent
 )
+logger = logging.getLogger(__name__)
 
 ABI_PATH = "../artifacts/arbitrum/usdtv1.json"
 
@@ -56,7 +54,7 @@ def usdtv1_event_topics_dict() -> Dict[str, HexBytes]:
             "SellingPriceChanged": get_event_topic(ABI, "SellingPriceChanged")
         }
     except Exception as e:
-        logging.error(f"Failed to construct event topics dictionary: {e}")
+        logger.error(f"Failed to construct event topics dictionary: {e}")
         return {}
 
 def usdtv1_event_handlers() -> Dict[str, callable]:
@@ -97,14 +95,14 @@ async def process_usdtv1_deposits(
             user_balance.amount += amount
             await crud_users.update(
                 db,
-                UserBalanceUpdate(
+                UserUpdate(
                     amount=user_balance
                 )
             )
         else:
             raise RuntimeError("No UserBalance table associated to user")
         
-        logging.info(f"Processed deposit: src={public_address}, amount={amount}")
+        logger.info(f"Processed deposit: src={public_address}, amount={amount}")
     except Exception as e:
-        logging.error(f"Error processing 'Deposited' event: {e}")
+        logger.error(f"Error processing 'Deposited' event: {e}")
 

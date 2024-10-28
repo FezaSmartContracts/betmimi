@@ -6,9 +6,10 @@ from web3.types import SubscriptionType
 from websockets import ConnectionClosed, ConnectionClosedError
 from redis import Redis
 import pickle
-import logging
+from app.core.logger import logging
+from app.core.config import settings
 
-from ..config import settings
+logger = logging.getLogger(__name__)
 
 class SubscriptionHandler:
 
@@ -19,7 +20,7 @@ class SubscriptionHandler:
         self.redis = Redis(host=settings.REDIS_QUEUE_HOST, port=settings.REDIS_QUEUE_PORT, db=0)
         self.redis_queue_name = redis_queue_name
     
-    async def process_subscriptions(self, ctx) -> None:
+    async def process_subscriptions(self) -> None:
 
         """Connect to the WebSocket and listen for subscription messages."""
 
@@ -30,26 +31,26 @@ class SubscriptionHandler:
                     log_data = pickle.dumps(payload)
                     try:
                         self.redis.rpush(self.redis_queue_name, log_data)
-                        logging.info(f"Added data to queue: {self.redis_queue_name}")
+                        logger.info(f"Added data to queue: {self.redis_queue_name}")
                     except (pickle.PickleError, TypeError) as e:
-                        logging.error(f"Failed to add payload data to queue: {e}")
+                        logger.error(f"Failed to add payload data to queue: {e}")
     
             except (ConnectionClosedError, ConnectionClosed) as e:
-                logging.error(f"Connection interrupted due to {e}. Reconnecting...")
+                logger.error(f"Connection interrupted due to {e}. Reconnecting...")
                 continue
-            except asyncio.CancelledError:
-                logging.error("Cancelling subscription processing. Cleaning up....")
+            except asyncio.CancelledError as e:
+                logger.error(f"Cancelling subscription processing. Cleaning up....: {e}")
                 await self._cleanup_subscriptions()
                 break
             except Exception as e:
-                logging.error(f"Unexpected error: {e}. Reconnecting...")
+                logger.error(f"Unexpected error: {e}. Reconnecting...")
                 continue
     
     async def subscribe(self, callback: callable, event_type: SubscriptionType, **event_params) -> HexStr:
         """Subscribes to an event using the existing WebSocket connection."""
         if self.is_connected():
             sub_id = await self.w3_socket.eth.subscribe(event_type, event_params)
-            logging.info(f"Subscribed to {event_type} with subscription ID {sub_id}")
+            logger.info(f"Subscribed to {event_type} with subscription ID {sub_id}")
             self.redis.set(sub_id, pickle.dumps(callback))
             return sub_id
         else:
@@ -67,10 +68,10 @@ class SubscriptionHandler:
         """Unsubscribe from all active subscriptions"""
         for sub_id in self.redis.keys():
             try:
-                await self.w3_socket.eth.unsubscribe(sub_id)
-                logging.info(f"Unsubscribed from {sub_id}")
+                await self.unsubscribe(sub_id)
+                logger.info(f"Unsubscribed from {sub_id}")
             except Exception as e:
-                logging.error(f"Failed to unsubscribe from {sub_id}: {e}")
+                logger.error(f"Failed to unsubscribe from {sub_id}: {e}")
     
     def is_connected(self) -> bool:
         """Checks if the WebSocket is connected."""
@@ -116,8 +117,14 @@ class WebSocketManager:
         Starts the subscription processing task if it's not already running.
         """
         if not self.subscription_task:
-            self.subscription_task = asyncio.create_task(self.ws_handler.process_subscriptions(None))
-            logging.info("Initial Websocket Connection Starting.")
+            try:
+                loop = asyncio.get_running_loop()
+                self.subscription_task = loop.create_task(self.ws_handler.process_subscriptions())
+                logger.info("Initial Websocket Connection Starting.")
+            except RuntimeError as e:
+                logger.error(f"Failed to connect: {e}")
+            except asyncio.CancelledError as e:
+                logger.error(f"task is cancelled due to: {e}")
     
     async def subscribe(self, callback: callable, event_type: str, **event_params):
         """
@@ -132,6 +139,28 @@ class WebSocketManager:
             The result of the subscription request.
         """
         return await self.ws_handler.subscribe(callback, event_type, **event_params)
+    
+    async def shutdown(self):
+        """Gracefully shuts down the WebSocket connection and clears active subscriptions."""
+        logger.info("Initiating shutdown sequence for WebSocket manager...")
+
+        # Cancel the subscription processing task
+        if self.subscription_task:
+            self.subscription_task.cancel()
+            try:
+                await self.subscription_task
+            except asyncio.CancelledError:
+                logger.info("Subscription task successfully cancelled.")
+
+        # Cleanup active subscriptions
+        await self.ws_handler._cleanup_subscriptions()
+
+        # Close WebSocket connection if still open
+        if self.ws_handler.is_connected():
+            await self.ws_handler.w3_socket.provider.disconnect()
+            logger.info("WebSocket connection closed gracefully.")
+        
+        logger.info("WebSocket manager shutdown complete.")
     
     async def is_connected(self) -> bool:
         """
@@ -150,3 +179,5 @@ class WebSocketManager:
             int: Integer value. Zero if empty
         """
         return self.ws_handler.queue_size()
+
+

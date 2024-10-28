@@ -1,7 +1,6 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel
 from typing import Optional
-from datetime import datetime
-from ..models.user import User, Prediction
+from ..models.user import Prediction
 
 
 #-------------User schemas--------------------#
@@ -12,6 +11,7 @@ class SignatureVerificationRequest(SQLModel):
 class UserRead(SQLModel):
     id: int
     public_address: str
+    balance: float
 
 class UserPredictionRead(SQLModel):
     id: int

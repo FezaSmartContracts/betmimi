@@ -30,6 +30,7 @@ services:
     depends_on:
       - db
       - redis
+      - websocket_service
     volumes:
       - ./src/app:/code/app
       - ./src/.env:/code/.env
@@ -69,7 +70,20 @@ services:
       - ./src/alembic.ini:/code/alembic.ini  # Mount the alembic.ini file
       - ./src/migrations:/code/migrations
 
-
+  websocket_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "websocket_service.py"]
+    env_file:
+      - ./src/.env
+    depends_on:
+      - redis
+    volumes:
+      - ./src/app:/code/app
+      - ./src/.env:/code/.env
+      - ./src/app/core/web3_services:/code/web3_services
+      - ./src/app/core/web3_services/websocket_service.py:/code/websocket_service.py
   #-------- uncomment to run with pgadmin --------
   # pgadmin:
   #   container_name: pgadmin4

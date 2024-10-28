@@ -18,7 +18,7 @@ from sqlmodel import SQLModel
 
 from ..api.dependencies import get_current_superuser
 from ..middleware.client_cache_middleware import ClientCacheMiddleware
-from ..core.web3_services.manager import WebSocketManager
+#from ..core.web3_services.manager import WebSocketManager
 from .config import (
     AppSettings,
     ClientSideCacheSettings,
@@ -43,13 +43,13 @@ async def create_tables() -> None:
         await conn.run_sync(SQLModel.metadata.create_all)
 
 #---------websocket_connection----------
-async def connect_alchemy_web_socket():
+"""async def connect_alchemy_web_socket():
     ws_manager = WebSocketManager(WSSL_URI, "alchemy_logs_queue")
     await ws_manager.start_processing()
 
 async def manually_close_alchemy_websocket():
     w3 = AsyncWeb3(WebSocketProvider(WSSL_URI))
-    await w3.provider.disconnect()
+    await w3.provider.disconnect()"""
 
 # -------------- cache --------------
 async def create_redis_cache_pool() -> None:
@@ -117,8 +117,8 @@ def lifespan_factory(
         if isinstance(settings, RedisRateLimiterSettings):
             await create_redis_rate_limit_pool()
 
-        if isinstance(settings, AlchemySettings):
-            await connect_alchemy_web_socket()
+        """if isinstance(settings, AlchemySettings):
+            await connect_alchemy_web_socket()"""
 
 
         yield
@@ -132,8 +132,8 @@ def lifespan_factory(
         if isinstance(settings, RedisRateLimiterSettings):
             await close_redis_rate_limit_pool()
 
-        if isinstance(settings, AlchemySettings):
-            await manually_close_alchemy_websocket()
+        """if isinstance(settings, AlchemySettings):
+            await manually_close_alchemy_websocket()"""
 
     return lifespan
 

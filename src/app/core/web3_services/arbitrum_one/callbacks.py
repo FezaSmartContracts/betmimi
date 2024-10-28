@@ -1,10 +1,12 @@
-import logging
 import json
 from hexbytes import HexBytes
+from ....core.logger import logging
 from .handlers import (
     usdtv1_event_topics_dict,
     usdtv1_event_handlers
 )
+
+logger = logging.getLogger(__name__)
 
 async def process_winorloss_callbacklogs(message):
     """Callback function for updating/persisting data to database."""
@@ -15,24 +17,24 @@ async def process_winorloss_callbacklogs(message):
         event_signature: HexBytes = payload['topics'][0]
 
         if not event_topics:
-            logging.error("No event topics loaded; aborting log processing.")
+            logger.error("No event topics loaded; aborting log processing.")
             return
 
         for event, topic in event_topics.items():
             if event_signature == topic:
                 if handler := event_handlers.get(event):
                     await handler(payload)
-                    logging.info(f"Event '{event}' processed.")
+                    logger.info(f"Event '{event}' processed.")
                     break
                 else:
-                    logging.warning(f"No handler defined for event '{event}'.")
+                    logger.warning(f"No handler defined for event '{event}'.")
                     break
         else:
-            logging.error("Event log cannot be identified!")
+            logger.error("Event log cannot be identified!")
 
     except FileNotFoundError:
-        logging.error("ABI file not found.")
+        logger.error("ABI file not found.")
     except json.JSONDecodeError:
-        logging.error("Invalid JSON format in ABI file.")
+        logger.error("Invalid JSON format in ABI file.")
     except Exception as e:
-        logging.error(f"Error processing event log: {e}")
+        logger.error(f"Error processing event log: {e}")

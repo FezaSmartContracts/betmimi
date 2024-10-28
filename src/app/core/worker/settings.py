@@ -31,6 +31,7 @@ class WorkerSettings:
             name="Process Data Cron",
             minute={0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55},
             run_at_startup=True,
-            timeout=299
+            timeout=300,
+            max_tries=1
         )
     ]

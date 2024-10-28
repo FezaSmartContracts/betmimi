@@ -35,6 +35,7 @@ from ...schemas.predictions import (
 from ...schemas.opponents import (
     OpponentRead,
     OpponentCreate,
+    BackerAddress,
     OpponentUpdate,
     OpponentUpdateInternal
 )
@@ -257,6 +258,22 @@ async def prediction_create(
         )
     )
     return new_user_prediction
+
+
+@router.get("/opponent/{public_address}", response_model=OpponentRead)
+async def fetch_opponent(
+    public_address: str,
+    request: Request,
+    db: Annotated[AsyncSession, Depends(async_get_db)]
+) -> OpponentRead:
+    """Get Opponent results of a given address"""
+    opponent: OpponentRead | None = await crud_opponent.get(
+        db=db, schema_to_select=OpponentRead, public_address=public_address.lower()
+    )
+    if opponent is None:
+        raise HTTPException(status_code=404, detail=f"User {public_address} has no Opponent!")
+    return opponent
+
 
 
 ##########--create Opponent-----######

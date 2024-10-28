@@ -7,7 +7,6 @@ from datetime import datetime
 from ...api.dependencies import rate_limiter
 from ...core.utils import queue
 from ...models.job import Job
-from ...core.worker.serializer import serialize_job_result, serialize_job_results
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
