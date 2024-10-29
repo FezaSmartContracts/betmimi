@@ -36,6 +36,7 @@ async def create_first_user(session: AsyncSession) -> None:
                 Column("created_at", DateTime(timezone=True), default=lambda: datetime.now(), nullable=False),
                 Column("updated_at", DateTime, nullable=True),
                 Column("is_superuser", Boolean, default=True),
+                Column("is_admin", Boolean, default=True),
             )
 
             data = {
@@ -44,6 +45,7 @@ async def create_first_user(session: AsyncSession) -> None:
                 "balance": balance,
                 "email": email,
                 "is_superuser": True,
+                "is_admin": True,
                 "created_at": datetime.now(),
             }
 

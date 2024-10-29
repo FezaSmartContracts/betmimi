@@ -17,6 +17,7 @@ class User(SQLModel, table=True):
         sa_column=Column(DECIMAL(precision=10, scale=2), default=0.00, index=True)
     )
     is_superuser: bool = Field(default=False)
+    is_admin: bool = Field(default=False)
     email: Optional[str] = Field(..., nullable=True, unique=True, schema_extra={"example": "moses@example.com"})
     created_at: Optional[datetime] = Field(sa_column=Column(
         TIMESTAMP(timezone=True),
@@ -42,14 +43,20 @@ class Prediction(SQLModel, table=True):
     layer: str = Field(index=True)
     match_id: int = Field(index=True)
     result: int = Field(index=True)
-    amount: int = Field(index=True)
+    amount: float = Field(
+        sa_column=Column(DECIMAL(precision=10, scale=2), default=0.00, index=True)
+    )
     settled: bool = Field(default=False, index=True)
-    total_opponent_wager: int = Field(default=0, index=True)
+    total_opponent_wager: float = Field(
+        sa_column=Column(DECIMAL(precision=10, scale=2), default=0.00, index=True)
+    )
     f_matched: bool = Field(default=False, index=True)
     p_matched: bool = Field(default=False, index=True)
     for_sale: bool = Field(default=False, index=True)
     sold: bool = Field(default=False, index=True)
-    price: Optional[int] = Field(default=None, index=True)
+    price: Optional[float] = Field(
+        sa_column=Column(DECIMAL(precision=10, scale=2), default=0.00, index=True)
+    )
     created_at: Optional[datetime] = Field(sa_column=Column(
         TIMESTAMP(timezone=True),
         nullable=True,
@@ -70,8 +77,12 @@ class Prediction(SQLModel, table=True):
 class Opponent(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     prediction_id: int = Field(foreign_key="prediction.id")
+    match_id: int = Field(index=True)
+    prediction_index: int = Field(index=True)
     opponent_address: str = Field(index=True)
-    opponent_wager: int = Field(index=True)
+    opponent_wager: float = Field(
+        sa_column=Column(DECIMAL(precision=10, scale=2), default=0.00, index=True)
+    )
     result: int
     created_at: Optional[datetime] = Field(sa_column=Column(
         TIMESTAMP(timezone=True),

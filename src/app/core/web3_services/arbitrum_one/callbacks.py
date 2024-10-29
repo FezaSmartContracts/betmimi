@@ -1,6 +1,10 @@
 import json
+from typing import Annotated
 from hexbytes import HexBytes
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from ....core.logger import logging
+from ....core.db.database import async_get_db
 from .handlers import (
     usdtv1_event_topics_dict,
     usdtv1_event_handlers
@@ -8,7 +12,7 @@ from .handlers import (
 
 logger = logging.getLogger(__name__)
 
-async def process_winorloss_callbacklogs(message):
+async def process_winorloss_callbacklogs(message, db):
     """Callback function for updating/persisting data to database."""
     try:
         payload = message['result']
@@ -23,7 +27,10 @@ async def process_winorloss_callbacklogs(message):
         for event, topic in event_topics.items():
             if event_signature == topic:
                 if handler := event_handlers.get(event):
-                    await handler(payload)
+                    await handler(
+                        payload,
+                        db
+                    )
                     logger.info(f"Event '{event}' processed.")
                     break
                 else:

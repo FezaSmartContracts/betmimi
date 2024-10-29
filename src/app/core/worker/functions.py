@@ -1,19 +1,25 @@
 import asyncio
+from typing import Annotated
 
 import uvloop
 from arq.worker import Worker
 from eth_typing import HexStr
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from ...core.config import settings
 from ...core.utils import queue
 from ...models.job import Job
 from ...core.logger import logging
 from ..web3_services.manager import WebSocketManager
 from ..web3_services.processor import BatchProcessor
+from ...core.db.database import async_get_db
 from ..web3_services.utils import load_contract_address
+from ..web3_services.arbitrum_one.callbacks import process_winorloss_callbacklogs
 
 logger = logging.getLogger(__name__)
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
 
 
 # -------- background tasks --------
@@ -44,7 +50,7 @@ async def subscribe_to_winorloss_arb_usdtv1_events(ctx: Worker, name: str) -> st
         logger.info("Websocket is sucessfully Connected!")
 
         await subs_handler.subscribe(
-            callback_logs, "logs", address=CONTRACT_ADDRESS
+            process_winorloss_callbacklogs, "logs", address=CONTRACT_ADDRESS
         )
     except Exception as e:
         logger.error(f"Failed to subscribe to events: {e}")
@@ -58,15 +64,17 @@ async def process_data(ctx: Worker):
 
     logger.info("Process Data Cron job started")
     redis_connection = ctx['redis']
-    bp = BatchProcessor("alchemy_logs_queue", "alchemy_inprocessing_queue", redis_connection)
 
-    try:
-        await bp.batch_process_logs()
-    except asyncio.CancelledError as e:
-        logger.error(f"Cancelled: {e}")
-    except Exception as e:
-        logger.error(f"Unknown Error: {e}")
-    logger.info(f"Task completed its 5-minute run.")
+    async for db in async_get_db():
+        bp = BatchProcessor("alchemy_logs_queue", "alchemy_inprocessing_queue", redis_connection)
+
+        try:
+            await bp.batch_process_logs(db)
+        except asyncio.CancelledError as e:
+            logger.error(f"Cancelled: {e}")
+        except Exception as e:
+            logger.error(f"Unknown Error: {e}")
+        logger.info(f"Task completed its 5-minute run.")
 
     
 

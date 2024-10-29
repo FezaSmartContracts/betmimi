@@ -11,14 +11,21 @@ class PredictionCreate(SQLModel):
     layer: str
     match_id: int
     result: int
-    amount: int
+    amount: float
     settled: bool = False
-    total_opponent_wager: int = 0
+    total_opponent_wager: float = 0.00
     f_matched: bool = False
     p_matched: bool = False
     for_sale: bool = False
     sold: bool = False
-    price: Optional[int] = None
+    price: Optional[float] = None
+
+class QuickPredRead(SQLModel):
+    id: int
+    index: int
+    match_id: int
+    total_opponent_wager: float
+    amount: float
 
 class PredictionRead(SQLModel):
     id: int
@@ -27,14 +34,14 @@ class PredictionRead(SQLModel):
     layer: str
     match_id: int
     result: int
-    amount: int
+    amount: float
     settled: bool
-    total_opponent_wager: int
+    total_opponent_wager: float
     f_matched: bool
     p_matched: bool
     for_sale: bool
     sold: bool
-    price: int
+    price: float
     created_at: datetime
     updated_at: Optional[datetime]
 
@@ -45,14 +52,14 @@ class PredictionAndOpponents(SQLModel):
     layer: str
     match_id: int
     result: int
-    amount: int
+    amount: float
     settled: bool
-    total_opponent_wager: int
+    total_opponent_wager: float
     f_matched: bool
     p_matched: bool
     for_sale: bool
     sold: bool
-    price: int
+    price: float
     created_at: datetime
     updated_at: Optional[datetime]
     oppononts: List[Opponent]
@@ -60,14 +67,14 @@ class PredictionAndOpponents(SQLModel):
 
 
 class PredictionUpdate(SQLModel):
-    layer: str = Field(index=True)
-    settled: bool = Field(default=False, index=True)
-    total_opponent_wager: int = Field(default=0, index=True)
-    f_matched: bool = Field(default=False, index=True)
-    p_matched: bool = Field(default=False, index=True)
-    for_sale: bool = Field(default=False, index=True)
-    sold: bool = Field(default=False, index=True)
-    price: Optional[int] = Field(default=None, index=True)
+    layer: str
+    settled: bool
+    total_opponent_wager: float
+    f_matched: bool
+    p_matched: bool
+    for_sale: bool
+    sold: bool
+    price: Optional[float]
 
 class PredictionUpdateInternal(PredictionUpdate):
     pass

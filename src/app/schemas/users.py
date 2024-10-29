@@ -48,10 +48,10 @@ class UserUpdateInternal(UserUpdate):
     pass
 
 class AdminUpdate(SQLModel):
-    is_superuser: bool
+    is_admin: bool
 
 #-----------Balance schemas-------------#
 
 class UserBalanceRead(SQLModel):
     public_address: str
-    amount: float
+    balance: float

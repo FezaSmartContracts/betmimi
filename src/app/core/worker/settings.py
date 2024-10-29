@@ -2,6 +2,7 @@ from arq.connections import RedisSettings
 from arq.cron import cron
 
 from ...core.config import settings
+from ...core.db.database import async_get_db
 from .functions import (
     sample_background_task,
     shutdown,

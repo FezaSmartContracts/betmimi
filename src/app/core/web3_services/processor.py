@@ -1,6 +1,9 @@
 from eth_typing import HexStr
 import asyncio
+from typing import Annotated
 from web3 import AsyncWeb3
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from web3.providers.persistent import WebSocketProvider
 from web3.types import SubscriptionType
 from websockets import ConnectionClosed, ConnectionClosedError
@@ -8,6 +11,7 @@ from redis import Redis
 import aioredis
 import pickle
 from ...core.logger import logging
+from ...core.db.database import async_get_db
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +23,7 @@ class BatchProcessor:
         self.inprocess_queue_name = redis_inprocess_queue
         self.redis = redis_connection
     
-    async def batch_process_logs(self):
+    async def batch_process_logs(self, db):
         """
         Fetch a batch of logs from Redis, process them, and store them in the database.
 
@@ -31,13 +35,16 @@ class BatchProcessor:
                 log = await self.redis.execute_command('BLMOVE', self.redis_queue_name, self.inprocess_queue_name, 'LEFT', 'RIGHT', 0)
                 if log:
                     try:
-                        payload = pickle.loads(log)
-                        sub_id = payload["subscription"]
+                        message = pickle.loads(log)
+                        sub_id = message["subscription"]
                         callback_function = await self.redis.get(sub_id)
                         if callback_function:
                             callback = pickle.loads(callback_function)
-                            callback(payload)
-                        logger.info("Processed log successfully.")
+                            logger.info(f"Callback {callback} loaded.")
+                            await callback(message, db)
+                            logger.info("Processed log successfully.")
+                        else:
+                            raise RuntimeError("No callback function returned")
                         await self.redis.lrem(self.inprocess_queue_name, 0, log)
                     except Exception as e:
                         logger.error(f"Failed to process log: {e}")
