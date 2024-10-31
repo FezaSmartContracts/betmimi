@@ -65,10 +65,9 @@ services:
     depends_on:
       - db
     volumes:
-      - ./src/app:/code/app
       - ./src/.env:/code/.env
-      - ./src/alembic.ini:/code/alembic.ini  # Mount the alembic.ini file
       - ./src/migrations:/code/migrations
+      - ./src/alembic.ini:/code/alembic.ini
 
   websocket_service:
     build:
@@ -118,9 +117,10 @@ services:
     depends_on:
       - db
       - migrations  # Ensures migrations are applied before creating superuser
-    command: python -m src.scripts.create_first_superuser
+    command: ["./wait-for-it.sh", "migrations:5432", "--", "python", "-m", "src.scripts.create_first_superuser"]
     volumes:
       - ./src:/code/src
+      - ./wait-for-it.sh:/wait-for-it.sh
 
   #-------- uncomment to run tests --------
   # pytest:

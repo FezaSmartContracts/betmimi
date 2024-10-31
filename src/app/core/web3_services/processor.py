@@ -36,12 +36,22 @@ class BatchProcessor:
                 if log:
                     try:
                         message = pickle.loads(log)
+                        
                         sub_id = message["subscription"]
-                        callback_function = await self.redis.get(sub_id)
+                        if sub_id is None:
+                            logger.error("Message missing 'subscription' field.")
+                            continue
+                        
+                        subscription_data_bytes = await self.redis.get(sub_id)
+                        if subscription_data_bytes is None:
+                            logger.error(f"No subscription data found for sub_id: {sub_id}")
+                            continue
+
+                        subscription_data = pickle.loads(subscription_data_bytes)
+                        callback_function = subscription_data['callback']
                         if callback_function:
-                            callback = pickle.loads(callback_function)
-                            logger.info(f"Callback {callback} loaded.")
-                            await callback(message, db)
+                            logger.info(f"Callback {callback_function} loaded.")
+                            await callback_function(message, db)
                             logger.info("Processed log successfully.")
                         else:
                             raise RuntimeError("No callback function returned")

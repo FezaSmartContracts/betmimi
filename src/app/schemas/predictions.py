@@ -27,6 +27,24 @@ class QuickPredRead(SQLModel):
     total_opponent_wager: float
     amount: float
 
+class OppPredUpdate(SQLModel):
+    total_opponent_wager: float
+    f_matched: bool
+    p_matched: bool
+
+class PredSettledUpdate(SQLModel):
+    settled: bool
+
+class PredSoldUpdate(SQLModel):
+    layer: str
+
+class PredPriceUpdate(SQLModel):
+    price: float
+
+class PredInitialUpdate(SQLModel):
+    for_sale: bool
+    price: float
+
 class PredictionRead(SQLModel):
     id: int
     user_id: int

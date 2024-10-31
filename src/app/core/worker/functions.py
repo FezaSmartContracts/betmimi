@@ -13,8 +13,8 @@ from ...core.logger import logging
 from ..web3_services.manager import WebSocketManager
 from ..web3_services.processor import BatchProcessor
 from ...core.db.database import async_get_db
-from ..web3_services.utils import load_contract_address
-from ..web3_services.arbitrum_one.callbacks import process_winorloss_callbacklogs
+from ..web3_services.utils import arbitrum_contract_addresses
+from ..web3_services.arbitrum_one.callbacks import process_arbitrum_callbacklogs
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +35,7 @@ async def subscribe_to_winorloss_arb_usdtv1_events(ctx: Worker, name: str) -> st
     try:
 
         WSS_URI = f"wss://arb-sepolia.g.alchemy.com/v2/{settings.ALCHEMY_API_KEY}"
-        address_relative_path = "../artifacts/arbitrum/deployments.json"
-        _key = "WinOrLoss"
-        _address = load_contract_address(_key, address_relative_path)
-        CONTRACT_ADDRESS = _address
+        CONTRACT_ADDRESSES = arbitrum_contract_addresses()
 
         # Get the singleton instance of the WebSocketManager
         subs_handler = WebSocketManager(WSS_URI, "alchemy_logs_queue")
@@ -50,7 +47,7 @@ async def subscribe_to_winorloss_arb_usdtv1_events(ctx: Worker, name: str) -> st
         logger.info("Websocket is sucessfully Connected!")
 
         await subs_handler.subscribe(
-            process_winorloss_callbacklogs, "logs", address=CONTRACT_ADDRESS
+            process_arbitrum_callbacklogs, "logs", address=CONTRACT_ADDRESSES
         )
     except Exception as e:
         logger.error(f"Failed to subscribe to events: {e}")

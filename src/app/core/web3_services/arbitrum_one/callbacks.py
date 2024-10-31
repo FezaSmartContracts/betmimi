@@ -5,14 +5,13 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from ....core.logger import logging
 from ....core.db.database import async_get_db
-from .handlers import (
-    usdtv1_event_topics_dict,
-    usdtv1_event_handlers
-)
+from .event_topics import usdtv1_event_topics_dict
+from .handler import usdtv1_event_handlers
+
 
 logger = logging.getLogger(__name__)
 
-async def process_winorloss_callbacklogs(message, db):
+async def process_arbitrum_callbacklogs(message, db):
     """Callback function for updating/persisting data to database."""
     try:
         payload = message['result']
