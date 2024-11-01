@@ -1,45 +1,60 @@
-from typing import Dict, Annotated
 from decimal import Decimal, ROUND_DOWN
-from hexbytes import HexBytes
 from eth_abi.abi import decode
 
 from .....core.logger import logging
 from .....crud.crud_predictions import crud_predictions
 from .....crud.crud_users import crud_users
 from .....crud.crud_opponent import crud_opponent
+from .....crud.crud_matches import crud_matches
+from .....schemas.opponents import OpponentCreate
+from .....schemas.games import GameCreate, GameIdRead, GameStatusUpdate
 from .....schemas.users import (
     UserRead,
     UpdateUserBalance,
-    UserUpdateInternal,
     UserBalanceRead
 )
 from .....schemas.predictions import (
     PredictionCreate,
-    PredictionRead,
     OppPredUpdate,
     QuickPredRead,
     PredInitialUpdate,
     PredSettledUpdate,
     PredSoldUpdate,
-    PredPriceUpdate,
-    PredictionUpdate,
-    PredictionUpdateInternal
+    PredPriceUpdate
 )
-from .....schemas.opponents import (
-    OpponentCreate,
-    OpponentRead,
-    OpponentUpdateInternal
-)
-from .....models.user import (
-    User,
-    Prediction,
-    Opponent
-)
+
+
 logger = logging.getLogger(__name__)
 
 
-
 # ------usdtv1 handlers-----------------------
+async def register_games(payload, db):
+    """
+    Handler for `GameRegistered` event
+
+    Updates game model
+    """
+    try:
+        _id: int = decode(['uint256'], payload['topics'][1])[0]
+
+        game: GameIdRead | None = await crud_users.get(
+        db=db, schema_to_select=GameIdRead, match_id=_id
+        )
+
+        if game is None:
+            await crud_matches.create(
+                db,
+                GameCreate(
+                    match_id=_id
+                )
+            )
+            logger.info(f"New game registered: sID={_id}")
+        else:
+            logger.info(f"Game {_id} already registered!")
+    except Exception as e:
+        logger.error(f"Error processing 'GameRegistered' event: {e}")
+
+
 async def process_usdtv1_deposits(payload, db):
     """
     Handler for 'Deposited' event.
@@ -292,7 +307,7 @@ async def process_usdtv1_bet_sold(payload, db):
         logger.info("Prediction Updated successfully.")
     except Exception as e:
         logger.error(f"Error Processing 'BetSold' event: {e}")
-        
+
 async def process_usdtv1_settled_pred(payload, db):
     """
     Handler for `PredictionSettled` event.

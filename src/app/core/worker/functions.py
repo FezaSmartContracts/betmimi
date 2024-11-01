@@ -1,10 +1,12 @@
 import asyncio
 
 import uvloop
+from redis.asyncio import Redis
 from arq.worker import Worker
 from ...core.config import settings
 from ...core.logger import logging
 from ..web3_services.processor import BatchProcessor
+from ..web3_services.strings import ALCHEMY_REDIS_QUEUE_NAME, ALCHEMY_INPROCESSING_QUEUE
 from ...core.db.database import async_get_db
 
 logger = logging.getLogger(__name__)
@@ -18,13 +20,18 @@ async def sample_background_task(ctx: Worker, name: str) -> str:
     await asyncio.sleep(5)
     return f"Task {name} is complete!"
     
-async def process_data(ctx: Worker):
+async def process_data(ctx):
+    logger.info("Entered the process_data function.")
 
     logger.info("Process Data Cron job started")
-    redis_connection = ctx['redis']
+    redis_connection: Redis = ctx['redis']
 
     async for db in async_get_db():
-        bp = BatchProcessor("alchemy_logs_queue", "alchemy_inprocessing_queue", redis_connection)
+        bp = BatchProcessor(
+            ALCHEMY_REDIS_QUEUE_NAME,
+            ALCHEMY_INPROCESSING_QUEUE,
+            redis_connection
+        )
 
         try:
             await bp.batch_process_logs(db)

@@ -13,7 +13,8 @@ class GameStatus(str, Enum):
 
 class Game(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    provider_id: int = Field(nullable=False)
+    match_id: int = Field(index=True)
+    provider_id: Optional[int] = Field(nullable=True)
     home_team: str = Field(..., index=True)
     away_team: str = Field(..., index=True)
     start_time: datetime

@@ -1,17 +1,7 @@
-from eth_typing import HexStr
-import asyncio
-from typing import Annotated
-from web3 import AsyncWeb3
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from web3.providers.persistent import WebSocketProvider
-from web3.types import SubscriptionType
-from websockets import ConnectionClosed, ConnectionClosedError
-from redis import Redis
-import aioredis
 import pickle
+from redis.asyncio import Redis
+
 from ...core.logger import logging
-from ...core.db.database import async_get_db
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +22,13 @@ class BatchProcessor:
 
         while True:
             try:
-                log = await self.redis.execute_command('BLMOVE', self.redis_queue_name, self.inprocess_queue_name, 'LEFT', 'RIGHT', 0)
+                log = await self.redis.execute_command(
+                    'BLMOVE', self.redis_queue_name, self.inprocess_queue_name, 'LEFT', 'RIGHT', 0
+                )
                 if log:
                     try:
                         message = pickle.loads(log)
-                        
+
                         sub_id = message["subscription"]
                         if sub_id is None:
                             logger.error("Message missing 'subscription' field.")

@@ -23,9 +23,7 @@ def usdtv1_event_topics_dict() -> Dict[str, HexBytes]:
             "Backed": get_event_topic(ABI, "Backed"),
             "Claimed": get_event_topic(ABI, "Claimed"),
             "GameRegistered": get_event_topic(ABI, "GameRegistered"),
-            "GameResolved": get_event_topic(ABI, "GameResolved"),
             "PredictionSettled": get_event_topic(ABI, "PredictionSettled"),
-            "ReceivedFallback": get_event_topic(ABI, "ReceivedFallback"),
             "BetSold": get_event_topic(ABI, "BetSold"),
             "BetSellInitiated": get_event_topic(ABI, "BetSellInitiated"),
             "SellingPriceChanged": get_event_topic(ABI, "SellingPriceChanged")

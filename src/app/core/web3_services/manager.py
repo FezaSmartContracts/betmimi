@@ -6,7 +6,7 @@ from web3 import AsyncWeb3
 from web3.providers.persistent import WebSocketProvider
 from web3.types import SubscriptionType
 from websockets import ConnectionClosed, ConnectionClosedError
-from aioredis import Redis
+from redis.asyncio import Redis
 import pickle
 from app.core.logger import logging
 from app.core.config import settings
@@ -39,7 +39,7 @@ class SubscriptionHandler:
 
                     log_data = pickle.dumps(payload)
                     try:
-                        self.redis.rpush(self.redis_queue_name, log_data)
+                        await self.redis.rpush(self.redis_queue_name, log_data)
                         logger.info(f"Added data to queue: {self.redis_queue_name}")
                     except (pickle.PickleError, TypeError) as e:
                         logger.error(f"Failed to add payload data to queue: {e}")
