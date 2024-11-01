@@ -1,10 +1,7 @@
 import json
-from typing import Annotated
 from hexbytes import HexBytes
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from ....core.logger import logging
-from ....core.db.database import async_get_db
 from .event_topics import usdtv1_event_topics_dict
 from .handler import usdtv1_event_handlers
 
@@ -27,8 +24,7 @@ async def process_arbitrum_callbacklogs(message, db):
             if event_signature == topic:
                 if handler := event_handlers.get(event):
                     await handler(
-                        payload,
-                        db
+                        payload, db
                     )
                     logger.info(f"Event '{event}' processed.")
                     break

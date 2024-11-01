@@ -2,23 +2,19 @@ from arq.connections import RedisSettings
 from arq.cron import cron
 
 from ...core.config import settings
-from ...core.db.database import async_get_db
 from .functions import (
     sample_background_task,
     shutdown,
     startup,
-    subscribe_to_winorloss_arb_usdtv1_events,
     process_data
 )
 
 REDIS_QUEUE_HOST = settings.REDIS_QUEUE_HOST
 REDIS_QUEUE_PORT = settings.REDIS_QUEUE_PORT
 
-
 class WorkerSettings:
     functions = [
-        sample_background_task,
-        subscribe_to_winorloss_arb_usdtv1_events
+        sample_background_task
     ]
     redis_settings = RedisSettings(host=REDIS_QUEUE_HOST, port=REDIS_QUEUE_PORT)
     on_startup = startup

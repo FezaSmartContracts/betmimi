@@ -69,10 +69,10 @@ def get_event_topic(abi: List[Dict[str, Any]], event_name: str) -> HexBytes:
 
 def arbitrum_contract_addresses():
     address_relative_path = "../artifacts/arbitrum/deployments.json"
-    _keys = ["WinOrLoss", "ZUSDTv1" "OUSDTv1", "TUSDTv1", "HUSDTv1"]
+    _keys = ["WinOrLoss", "Zero", "One", "Two", "Three"]
     arbitrum_address = []
 
     for _key in _keys:
         _address = load_contract_address(_key, address_relative_path)
         arbitrum_address.append(_address)
-        return arbitrum_address
+    return arbitrum_address

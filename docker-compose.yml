@@ -73,7 +73,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["python", "websocket_service.py"]
+    command: ["python", "-m", "app.core.web3_services.arbitrum_one.websocket_service"]
     env_file:
       - ./src/.env
     depends_on:
@@ -82,7 +82,8 @@ services:
       - ./src/app:/code/app
       - ./src/.env:/code/.env
       - ./src/app/core/web3_services:/code/web3_services
-      - ./src/app/core/web3_services/websocket_service.py:/code/websocket_service.py
+      - ./src/app/core/web3_services/arbitrum_one:/code/web3_services/arbitrum_one
+
   #-------- uncomment to run with pgadmin --------
   # pgadmin:
   #   container_name: pgadmin4
