@@ -55,6 +55,8 @@ class SubscriptionHandler:
                 break
             except Exception as e:
                 logger.error(f"Unexpected error: {e}. Reconnecting...")
+                self.reconnected = True
+                continue
     
     async def subscribe(self, callback: callable, event_type: SubscriptionType, **event_params) -> HexStr:
         """Subscribes to an event using the existing WebSocket connection."""
@@ -75,21 +77,26 @@ class SubscriptionHandler:
         """Unsubscribes from a subscription identified by sub_id."""
         if self.is_connected():
             await self.w3_socket.eth.unsubscribe(sub_id)
-            self.redis.delete(sub_id)
+            await self.redis.delete(sub_id)
         else:
             raise RuntimeError("WebSocket connection not established, it's not possible to unsubscribe")
         
     async def _cleanup_subscriptions(self) -> None:
-        """Unsubscribe from all active subscriptions"""
-        sub_ids = await self.redis.keys('*')
-        for sub_id in sub_ids:
+        """Unsubscribe from all active subscriptions retrieved from the Redis queue."""
+        while True:
+            sub_id = await self.redis.lpop(self.subscriptions_queue_name)
+
+            if sub_id is None:
+                break
+
             try:
                 sub_id_str = sub_id.decode('utf-8')
                 if sub_id_str.startswith('0x'):
-                    await self.unsubscribe(sub_id)
-                    logger.info(f"Unsubscribed from {sub_id}")
+                    await self.unsubscribe(sub_id_str)
+                    logger.info(f"Unsubscribed from {sub_id_str}")
             except Exception as e:
-                logger.error(f"Failed to unsubscribe from {sub_id}: {e}")
+                logger.error(f"Failed to unsubscribe from {sub_id_str}: {e}")
+
 
     async def _resubscribe(self) -> None:
         """Resubscribe to events on reconnect."""
@@ -118,16 +125,14 @@ class SubscriptionHandler:
 
                 # Resubscribe with the original data
                 await self.subscribe(callback, event_type, address=event_params)
-                logger.info(f"Successfully resubscribed to {event_type} with subscription ID {sub_id}")
+                logger.info(f"Successfully resubscribed to {event_type} previously held by subscription ID: {sub_id}")
+
+                await self.unsubscribe(sub_id)
 
                 break # ensures we only retrieve the first element of the list
 
             except Exception as e:
                 logger.error(f"Failed to resubscribe to subscription ID {sub_id}: {e}")
-    
-    def _retrieve_callback_name(self, _output):
-        match = re.search(r'Callback: <function (\w+)', _output)
-        return match.group(1) if match else None
 
     
     def is_connected(self) -> bool:

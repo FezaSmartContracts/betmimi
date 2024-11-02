@@ -3,7 +3,6 @@ import asyncio
 import uvloop
 from redis.asyncio import Redis
 from arq.worker import Worker
-from ...core.config import settings
 from ...core.logger import logging
 from ..web3_services.processor import BatchProcessor
 from ..web3_services.strings import ALCHEMY_REDIS_QUEUE_NAME, ALCHEMY_INPROCESSING_QUEUE
@@ -21,8 +20,6 @@ async def sample_background_task(ctx: Worker, name: str) -> str:
     return f"Task {name} is complete!"
     
 async def process_data(ctx):
-    logger.info("Entered the process_data function.")
-
     logger.info("Process Data Cron job started")
     redis_connection: Redis = ctx['redis']
 
@@ -39,7 +36,7 @@ async def process_data(ctx):
             logger.error(f"Cancelled: {e}")
         except Exception as e:
             logger.error(f"Unknown Error: {e}")
-        logger.info(f"Task completed its 5-minute run.")
+        logger.info(f"Task completed its 10-minute(s) run.")
 
     
 # -------- base functions --------

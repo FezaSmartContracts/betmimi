@@ -20,15 +20,14 @@ class WorkerSettings:
     on_startup = startup
     on_shutdown = shutdown
     handle_signals = False
-    job_timeout = 120 # 2 minutes
 
     cron_jobs = [
         cron(
             process_data,
             name="Process Data Cron",
-            minute={0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55},
+            minute={0, 10, 20, 30, 40, 50},
             run_at_startup=True,
-            timeout=300,
+            timeout=600,
             max_tries=1
         )
     ]

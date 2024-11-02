@@ -23,7 +23,7 @@ async def init_subscribe_to_arb_events(subs_handler):
             _event_type,
             address=CONTRACT_ADDRESSES
         )
-        logger.info(f"Successfully Subscribed to to USDT(arbitrum) event {_event_type}")
+        logger.info(f"Successfully Subscribed to USDT(arbitrum) event {_event_type}")
 
     except Exception as e:
         logger.error(f"Failed to subscribe to events: {e}")

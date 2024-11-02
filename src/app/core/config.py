@@ -85,7 +85,12 @@ class DefaultRateLimitSettings(BaseSettings):
     DEFAULT_RATE_LIMIT_PERIOD: int = config("DEFAULT_RATE_LIMIT_PERIOD", default=3600)
 
 class AlchemySettings(BaseSettings):
+    ALCHEMY_BASE_WSS_URI: str = f"wss://arb-sepolia.g.alchemy.com/v2/"
     ALCHEMY_API_KEY: str = config("ALCHEMY_API_KEY", default="ALCHEMY_API_KEY")
+
+class ApiFootballSettings(BaseSettings):
+    API_FOOTBALL_BASE_URL: str = f"https://v3.football.api-sports.io/"
+    API_FOOTBALL_KEY: str = config("API_FOOTBALL_KEY", default="API_FOOTBALL_KEY")
 
 class EnvironmentOption(Enum):
     LOCAL = "local"
@@ -109,6 +114,7 @@ class Settings(
     RedisRateLimiterSettings,
     DefaultRateLimitSettings,
     AlchemySettings,
+    ApiFootballSettings,
     EnvironmentSettings,
 ):
     pass

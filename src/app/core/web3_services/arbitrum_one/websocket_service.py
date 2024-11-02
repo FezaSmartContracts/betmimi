@@ -9,7 +9,7 @@ from .functions import init_subscribe_to_arb_events
 
 logger = logging.getLogger(__name__)
 
-alchemy_arb_uri: str = f"wss://arb-sepolia.g.alchemy.com/v2/{settings.ALCHEMY_API_KEY}"
+alchemy_arb_uri: str = f"{settings.ALCHEMY_BASE_WSS_URI}{settings.ALCHEMY_API_KEY}"
 redis_queue_name = ALCHEMY_REDIS_QUEUE_NAME
 subscriptions_queue_name = ALCHEMY_SUBSCRIPTIONS_QUEUE_NAME
 
