@@ -112,10 +112,9 @@ class SubscriptionHandler:
 
                 # Deserialize the subscription data
                 subscription_data = pickle.loads(subscription_data_bytes)
-                _callback = subscription_data['callback']
+                callback = subscription_data['callback']
                 event_type = str(subscription_data['event_type'])
                 event_params = list(subscription_data['event_params']['address'])
-                callback = _callback.__name__
 
                 # Resubscribe with the original data
                 await self.subscribe(callback, event_type, address=event_params)
