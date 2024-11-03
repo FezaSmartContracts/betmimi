@@ -31,10 +31,13 @@ async def main():
         loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown()))
 
     # Run subscriptions and event initialization concurrently
-    await asyncio.gather(
-        handler.process_subscriptions(),
-        init_subscribe_to_arb_events(handler)
-    )
+    try:
+        await asyncio.gather(
+            handler.process_subscriptions(),
+            init_subscribe_to_arb_events(handler)
+        )
+    except Exception as e:
+        logger.error(f"Error occured: {e}")
 
 if __name__ == "__main__":
     try:

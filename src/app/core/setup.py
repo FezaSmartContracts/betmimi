@@ -5,8 +5,6 @@ from typing import Any
 import anyio
 import anyio.to_thread
 import fastapi
-import asyncio
-from web3 import AsyncWeb3, WebSocketProvider
 import redis.asyncio as redis
 from arq import create_pool
 from arq.connections import RedisSettings
@@ -41,15 +39,6 @@ WSSL_URI = f"wss://arb-sepolia.g.alchemy.com/v2/{settings.ALCHEMY_API_KEY}"
 async def create_tables() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
-
-#---------websocket_connection----------
-"""async def connect_alchemy_web_socket():
-    ws_manager = WebSocketManager(WSSL_URI, "alchemy_logs_queue")
-    await ws_manager.start_processing()
-
-async def manually_close_alchemy_websocket():
-    w3 = AsyncWeb3(WebSocketProvider(WSSL_URI))
-    await w3.provider.disconnect()"""
 
 # -------------- cache --------------
 async def create_redis_cache_pool() -> None:
@@ -117,9 +106,6 @@ def lifespan_factory(
         if isinstance(settings, RedisRateLimiterSettings):
             await create_redis_rate_limit_pool()
 
-        """if isinstance(settings, AlchemySettings):
-            await connect_alchemy_web_socket()"""
-
 
         yield
 
@@ -131,9 +117,6 @@ def lifespan_factory(
 
         if isinstance(settings, RedisRateLimiterSettings):
             await close_redis_rate_limit_pool()
-
-        """if isinstance(settings, AlchemySettings):
-            await manually_close_alchemy_websocket()"""
 
     return lifespan
 

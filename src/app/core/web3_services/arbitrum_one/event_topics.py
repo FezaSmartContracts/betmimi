@@ -26,7 +26,8 @@ def usdtv1_event_topics_dict() -> Dict[str, HexBytes]:
             "PredictionSettled": get_event_topic(ABI, "PredictionSettled"),
             "BetSold": get_event_topic(ABI, "BetSold"),
             "BetSellInitiated": get_event_topic(ABI, "BetSellInitiated"),
-            "SellingPriceChanged": get_event_topic(ABI, "SellingPriceChanged")
+            "SellingPriceChanged": get_event_topic(ABI, "SellingPriceChanged"),
+            "GameResolved": get_event_topic(ABI, "GameResolved")
         }
     except Exception as e:
         logger.error(f"Failed to construct event topics dictionary: {e}")

@@ -1,24 +1,13 @@
 from typing import Optional
 from sqlmodel import SQLModel
-from enum import Enum
-from datetime import datetime
 
-class GameStatus(str, Enum):
-    SCHEDULED = "scheduled"
-    ONGOING = "ongoing"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-
-class GameStatusRead(SQLModel):
-    id: int
-    match_id: int
-    status: Optional[GameStatus]
 
 class GameStatusUpdate(SQLModel):
-    status: GameStatus
+    resolved: bool
 
 class GameCreate(SQLModel):
     match_id: int
+    resolved: bool
 
 class GameIdRead(SQLModel):
     match_id: int

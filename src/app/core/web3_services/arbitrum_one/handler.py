@@ -9,7 +9,8 @@ from .handlers.usdtv1 import (
     process_usdtv1_selling_price_changed,
     process_usdtv1_settled_pred,
     process_usdtv1_claims,
-    register_games
+    register_games,
+    game_resolved
 )
 
 
@@ -24,5 +25,6 @@ def usdtv1_event_handlers() -> Dict[str, callable]:
         "BetSold": process_usdtv1_bet_sold,
         "SellingPriceChanged": process_usdtv1_selling_price_changed,
         "PredictionSettled": process_usdtv1_settled_pred,
-        "GameRegistered": register_games
+        "GameRegistered": register_games,
+        "GameResolved": game_resolved
     }

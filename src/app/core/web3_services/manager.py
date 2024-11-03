@@ -26,37 +26,37 @@ class SubscriptionHandler:
     
     async def process_subscriptions(self) -> None:
         """Connect to the WebSocket and listen for subscription messages."""
-
-        async for self.w3_socket in AsyncWeb3(WebSocketProvider(self.wss_url)):
-
-            # Check if reconnection has occurred
-            if self.reconnected:
-                await self._resubscribe()
+        try:
+            async for self.w3_socket in AsyncWeb3(WebSocketProvider(self.wss_url)):
+                # Check if reconnection has occurred
+                if self.reconnected:
+                    await self._resubscribe()
                 self.reconnected = False
 
-            try:
-                async for payload in self.w3_socket.socket.process_subscriptions():
+                try:
+                    async for payload in self.w3_socket.socket.process_subscriptions():
+                        log_data = pickle.dumps(payload)
+                        try:
+                            await self.redis.rpush(self.redis_queue_name, log_data)
+                            logger.info(f"Added data to queue: {self.redis_queue_name}")
+                        except (pickle.PickleError, TypeError) as e:
+                            logger.error(f"Failed to add payload data to queue: {e}")
 
-                    log_data = pickle.dumps(payload)
-                    try:
-                        await self.redis.rpush(self.redis_queue_name, log_data)
-                        logger.info(f"Added data to queue: {self.redis_queue_name}")
-                    except (pickle.PickleError, TypeError) as e:
-                        logger.error(f"Failed to add payload data to queue: {e}")
-    
-            except (ConnectionClosedError, ConnectionClosed) as e:
-                logger.error(f"Connection interrupted due to {e}. Reconnecting...")
-                self.reconnected = True
-                continue
+                except (ConnectionClosedError, ConnectionClosed) as e:
+                    logger.error(f"Connection interrupted due to {e}. Reconnecting...")
+                    self.reconnected = True
+                    continue
+                except asyncio.CancelledError as e:
+                    logger.error(f"Cancelling subscription processing. Cleaning up....: {e}")
+                    await self._cleanup_subscriptions()
+                    break
+                except Exception as e:
+                    logger.error(f"Unexpected error: {e}. Reconnecting...")
+                    self.reconnected = True
+                    continue
+        except Exception as e:
+            logger.error(f"Max retries 5 reached. Exited loop!")
 
-            except asyncio.CancelledError as e:
-                logger.error(f"Cancelling subscription processing. Cleaning up....: {e}")
-                await self._cleanup_subscriptions()
-                break
-            except Exception as e:
-                logger.error(f"Unexpected error: {e}. Reconnecting...")
-                self.reconnected = True
-                continue
     
     async def subscribe(self, callback: callable, event_type: SubscriptionType, **event_params) -> HexStr:
         """Subscribes to an event using the existing WebSocket connection."""

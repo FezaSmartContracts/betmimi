@@ -37,7 +37,7 @@ async def register_games(payload, db):
     try:
         _id: int = decode(['uint256'], payload['topics'][1])[0]
 
-        game: GameIdRead | None = await crud_users.get(
+        game: GameIdRead | None = await crud_matches.get(
         db=db, schema_to_select=GameIdRead, match_id=_id
         )
 
@@ -45,14 +45,40 @@ async def register_games(payload, db):
             await crud_matches.create(
                 db,
                 GameCreate(
-                    match_id=_id
+                    match_id=_id,
+                    resolved=False
                 )
             )
-            logger.info(f"New game registered: sID={_id}")
+            logger.info(f"New game registered: ID={_id}")
         else:
             logger.info(f"Game {_id} already registered!")
     except Exception as e:
         logger.error(f"Error processing 'GameRegistered' event: {e}")
+
+async def game_resolved(payload, db):
+    """
+    Handler for `GameResolved` event
+
+    Updates game model
+    """
+    try:
+        _id: int = decode(['uint256'], payload['topics'][1])[0]
+
+        game: GameIdRead | None = await crud_matches.get(
+        db=db, schema_to_select=GameIdRead, match_id=_id
+        )
+        if game is None:
+            raise Exception(f"Game ID {_id} not found")
+
+        await crud_matches.create(
+            db,
+            GameStatusUpdate(
+                resolved=True
+            )
+        )
+        logger.info(f"Game Resolved: ID={_id}")
+    except Exception as e:
+        logger.error(f"Error processing 'GameResolved' event: {e}")
 
 
 async def process_usdtv1_deposits(payload, db):

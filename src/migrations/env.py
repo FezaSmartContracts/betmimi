@@ -8,7 +8,9 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.models.user import User, Prediction, Opponent
+from app.models.games import Game
 from app.models.rate_limit import RateLimit
+from app.models.job import Job
 from app.core.db.token_blacklist import TokenBlacklist
 
 # this is the Alembic Config object, which provides
