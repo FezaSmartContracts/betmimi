@@ -42,7 +42,7 @@ class BatchProcessor:
                         subscription_data = pickle.loads(subscription_data_bytes)
                         callback_function = subscription_data['callback']
                         if callback_function:
-                            logger.info(f"Callback {callback_function} loaded.")
+                            logger.info(f"Callback {callback_function.__name__} loaded.")
                             await callback_function(message, db)
                             logger.info("Processed log successfully.")
                         else:

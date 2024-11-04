@@ -7,6 +7,7 @@ from ...core.logger import logging
 from ..web3_services.processor import BatchProcessor
 from ..web3_services.strings import ALCHEMY_REDIS_QUEUE_NAME, ALCHEMY_INPROCESSING_QUEUE
 from ...core.db.database import async_get_db
+from ..web3_services.arbitrum_one.functions import queue_missed_events_for_usdtv1_arb_alchemy
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,22 @@ async def process_data(ctx):
             logger.error(f"Unknown Error: {e}")
         logger.info(f"Task completed its 10-minute(s) run.")
 
+async def call_usdtv1_arb_alchemy_callback(
+        ctx: Worker,
+        name: str,
+        from_block: int,
+        to_block: int
+    ) -> None:
+    try:
+        await queue_missed_events_for_usdtv1_arb_alchemy(
+            from_block,
+            to_block
+        )
+    except asyncio.CancelledError as e:
+            logger.error(f"Cancelled: {e}")
+    except Exception as e:
+        logger.error(f"Unknown Error: {e}")
+    logger.info(f"Task {name} completed its 5-minute(s) run.")
     
 # -------- base functions --------
 async def startup(ctx: Worker) -> None:

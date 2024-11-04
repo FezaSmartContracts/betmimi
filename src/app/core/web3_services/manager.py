@@ -73,11 +73,15 @@ class SubscriptionHandler:
         else:
             raise RuntimeError("WebSocket connection not established, it's not possible to subscribe")
     
-    async def unsubscribe(self, sub_id: HexStr) -> None:
+    async def unsubscribe(self, sub_id: HexStr) -> bool:
         """Unsubscribes from a subscription identified by sub_id."""
         if self.is_connected():
-            await self.w3_socket.eth.unsubscribe(sub_id)
+            unsubscribed = await self.w3_socket.eth.unsubscribe(sub_id)
             await self.redis.delete(sub_id)
+            if unsubscribed:
+                return True
+            else:
+                return False
         else:
             raise RuntimeError("WebSocket connection not established, it's not possible to unsubscribe")
         
@@ -91,9 +95,11 @@ class SubscriptionHandler:
 
             try:
                 sub_id_str = sub_id.decode('utf-8')
-                if sub_id_str.startswith('0x'):
-                    await self.unsubscribe(sub_id_str)
-                    logger.info(f"Unsubscribed from {sub_id_str}")
+                unsubscribed = await self.unsubscribe(sub_id_str)
+                if unsubscribed:
+                    logger.info(f"Successfully Unsubscribed from {sub_id_str}")
+                else:
+                    logger.info(f"Failed to Unsubscribe from {sub_id_str}")
             except Exception as e:
                 logger.error(f"Failed to unsubscribe from {sub_id_str}: {e}")
 
@@ -109,12 +115,12 @@ class SubscriptionHandler:
                     break
 
                 # Decode the sub_id from bytes to a string
-                sub_id = sub_id.decode("utf-8")
+                sub_id_str = sub_id.decode("utf-8")
 
                 # Retrieve the subscription data from Redis
-                subscription_data_bytes = await self.redis.get(sub_id)
+                subscription_data_bytes = await self.redis.get(sub_id_str)
                 if subscription_data_bytes is None:
-                    logger.warning(f"No subscription data found for ID {sub_id}")
+                    logger.warning(f"No subscription data found for ID {sub_id_str}")
                     continue
 
                 # Deserialize the subscription data
@@ -125,9 +131,7 @@ class SubscriptionHandler:
 
                 # Resubscribe with the original data
                 await self.subscribe(callback, event_type, address=event_params)
-                logger.info(f"Successfully resubscribed to {event_type} previously held by subscription ID: {sub_id}")
-
-                await self.unsubscribe(sub_id)
+                logger.info(f"Successfully resubscribed to {event_type} previously held by subscription ID: {sub_id_str}")
 
                 break # ensures we only retrieve the first element of the list
 

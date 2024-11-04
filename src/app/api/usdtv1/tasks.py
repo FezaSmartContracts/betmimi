@@ -1,5 +1,6 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
+from fastapi import HTTPException
 from arq.jobs import Job as ArqJob
 from fastapi import APIRouter, Depends
 from datetime import datetime
@@ -33,36 +34,32 @@ async def get_task(task_id: str) -> dict[str, Any] | None:
     return None
 
 #dependencies=[Depends(rate_limiter)]
-@router.post("/task", response_model=Job, status_code=201)
-async def create_task(message: str) -> dict[str, str]:
+@router.post("/task", response_model=Dict[str, str], status_code=201)
+async def create_task(message: str, from_block: int, to_block: int) -> Dict[str, str]:
     """Create a new background task.
 
     Parameters
     ----------
     message: str
         The message or data to be processed by the task.
+    from_block: int
+        The starting block number for fetching logs.
+    to_block: int
+        The ending block number for fetching logs.
 
     Returns
     -------
     dict[str, str]
         A dictionary containing the ID of the created task.
     """
-    job = await queue.pool.enqueue_job("subscribe_to_winorloss_arb_usdtv1_events", message)  # type: ignore
-    return {"id": job.job_id}
+    try:
+        job = await queue.pool.enqueue_job(
+            "call_usdtv1_arb_alchemy_callback",
+            message,  # `message` as the task name
+            from_block,
+            to_block
+        )
+        return {"id": job.job_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create task: {str(e)}")
 
-@router.post("/tasks", response_model=Job, status_code=201)
-async def create_tasks(message: str) -> dict[str, str]:
-    """Create a new background task.
-
-    Parameters
-    ----------
-    message: str
-        The message or data to be processed by the task.
-
-    Returns
-    -------
-    dict[str, str]
-        A dictionary containing the ID of the created task.
-    """
-    job = await queue.pool.enqueue_job("process_event", message)  # type: ignore
-    return {"id": job.job_id}
