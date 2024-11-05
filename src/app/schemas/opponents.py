@@ -8,6 +8,7 @@ class OpponentCreate(SQLModel):
     opponent_address: str
     opponent_wager: float
     result: int
+    block_number: int
 
 
 class OpponentRead(SQLModel):
@@ -16,6 +17,7 @@ class OpponentRead(SQLModel):
     opponent_address: str
     opponent_wager: float
     result: int
+    block_number: int
 
 class OpponentUpdate(SQLModel):
     opponent_address: str
@@ -27,3 +29,9 @@ class OpponentUpdateInternal(OpponentUpdate):
 
 class BackerAddress(SQLModel):
     public_address: str
+
+class QuickOppRead(SQLModel):
+    match_id: int
+    prediction_index: int
+    opponent_address: str
+    block_number: int

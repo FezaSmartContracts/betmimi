@@ -10,6 +10,7 @@ class PredictionCreate(SQLModel):
     index: int
     layer: str
     match_id: int
+    contract_address: str
     result: int
     amount: float
     settled: bool = False
@@ -24,6 +25,7 @@ class QuickPredRead(SQLModel):
     id: int
     index: int
     match_id: int
+    contract_address: str
     total_opponent_wager: float
     amount: float
 

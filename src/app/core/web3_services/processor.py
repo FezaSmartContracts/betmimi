@@ -22,9 +22,7 @@ class BatchProcessor:
 
         while True:
             try:
-                log = await self.redis.execute_command(
-                    'BLMOVE', self.redis_queue_name, self.inprocess_queue_name, 'LEFT', 'RIGHT', 0
-                )
+                log = await self.redis.blmove(self.redis_queue_name, self.inprocess_queue_name, 0)
                 if log:
                     try:
                         message = pickle.loads(log)

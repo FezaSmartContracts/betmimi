@@ -43,6 +43,38 @@ from ...schemas.opponents import (
 router = APIRouter(tags=["predictions"])
 
 
+@router.post("/dynamic/predictions", response_model=PaginatedListResponse[PredictionRead])
+async def get_prediction_dynamically(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(async_get_db)],
+    page: int,
+    items_per_page: int,
+    date_info: Optional[Date],
+) -> dict:
+    """
+    Args
+    -----
+    - `year`: e.g 2024, 
+    - `month`: e.g 10 for october,
+    - `day`: e.g 18 for 18th
+
+    Returns
+    -----
+    - All predictions(Both active and non-active) with a `filter`:
+    - All predictions with ``created_at` greater than specified timestamp.
+    """
+    users_data = await crud_predictions.get_multi(
+        db=db,
+        offset=compute_offset(page, items_per_page),
+        limit=items_per_page,
+        return_as_model=True,
+        schema_to_select=PredictionRead,
+        created_at__gt=datetime(date_info.year, date_info.month, date_info.day, tzinfo=timezone.utc),
+        is_deleted=False,
+    )
+
+    response: dict[str, Any] = paginated_response(crud_data=users_data, page=page, items_per_page=items_per_page)
+    return response
 
 @router.get("/latest/predictions", response_model=PaginatedListResponse[PredictionRead])
 async def get_latest_predictions(

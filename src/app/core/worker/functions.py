@@ -8,6 +8,7 @@ from ..web3_services.processor import BatchProcessor
 from ..web3_services.strings import ALCHEMY_REDIS_QUEUE_NAME, ALCHEMY_INPROCESSING_QUEUE
 from ...core.db.database import async_get_db
 from ..web3_services.arbitrum_one.functions import queue_missed_events_for_usdtv1_arb_alchemy
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -39,22 +40,26 @@ async def process_data(ctx):
             logger.error(f"Unknown Error: {e}")
         logger.info(f"Task completed its 10-minute(s) run.")
 
-async def call_usdtv1_arb_alchemy_callback(
+async def call_usdtv1_arb_alchemy_fallback(
         ctx: Worker,
         name: str,
         from_block: int,
         to_block: int
     ) -> None:
+    timeout = 2 * settings.WEBSOCKET_TIMEOUT
     try:
-        await queue_missed_events_for_usdtv1_arb_alchemy(
-            from_block,
-            to_block
+        await asyncio.wait_for(
+            queue_missed_events_for_usdtv1_arb_alchemy(from_block, to_block),
+            timeout=float(timeout)
         )
+    except asyncio.TimeoutError:
+        logger.error("Time Out")
     except asyncio.CancelledError as e:
-            logger.error(f"Cancelled: {e}")
+        logger.error(f"Cancelled: {e}")
+        raise
     except Exception as e:
         logger.error(f"Unknown Error: {e}")
-    logger.info(f"Task {name} completed its 5-minute(s) run.")
+    logger.info(f"Task `{name}` completed its run.")
     
 # -------- base functions --------
 async def startup(ctx: Worker) -> None:

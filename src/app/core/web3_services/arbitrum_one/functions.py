@@ -49,19 +49,29 @@ async def queue_missed_events_for_usdtv1_arb_alchemy(
         "toBlock": to_block
     }
     WSS_URL = f"{settings.ALCHEMY_BASE_WSS_URI}{settings.ALCHEMY_API_KEY}"
+    manager = FallBackSubscriptionHandler(WSS_URL, AL, AS)
+
     try:
-        manager = FallBackSubscriptionHandler(WSS_URL, AL, AS)
-
-        await manager.fetch_logs(
-            process_arbitrum_callbacklogs,
-            filter_params
+        # Apply timeout to the entire connection and log-fetching process
+        await asyncio.wait_for(
+            manager.fetch_logs(process_arbitrum_callbacklogs, filter_params),
+            timeout=float(settings.WEBSOCKET_TIMEOUT)
         )
-        while not manager.is_connected():
-            logger.info("Fallback Websocket Not Connected Yet!")
-            await asyncio.sleep(5)
-        logger.info("Fallback Websocket is sucessfully Connected!")
-        
-        logger.info(f"Ready to receive event logs!")
 
+        # Connection check with a timeout loop
+        while not manager.is_connected():
+            logger.info("Fallback WebSocket Not Connected Yet!")
+            await asyncio.sleep(5)
+        
+    except asyncio.TimeoutError:
+        logger.error("WebSocket operation timed out.")
+        await manager.disconnect()
+    except asyncio.CancelledError:
+        logger.error("Task was canceled, disconnecting WebSocket...")
+        await manager.disconnect()
+        raise 
     except Exception as e:
         logger.error(f"Failed to subscribe to fallback events: {e}")
+    finally:
+        await manager.disconnect()
+        logger.info("WebSocket disconnected.")

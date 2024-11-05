@@ -1,10 +1,8 @@
 import re
 import asyncio
 
-from eth_typing import HexStr
 from web3 import AsyncWeb3
 from web3.providers.persistent import WebSocketProvider
-from web3.types import SubscriptionType
 from websockets import ConnectionClosed, ConnectionClosedError
 from redis.asyncio import Redis
 import pickle
@@ -28,7 +26,7 @@ class FallBackSubscriptionHandler:
         """Connect to the WebSocket and fetch events."""
         try:
             async with AsyncWeb3(WebSocketProvider(self.wss_url)) as self.w3_socket:
-
+                logger.info("Successfully connected to websocket.")
                 try:
                     await self._get_logs(callback, filter_params)
                 except (ConnectionClosedError, ConnectionClosed) as e:
@@ -53,9 +51,9 @@ class FallBackSubscriptionHandler:
 
             _key = await self.redis.get(callback_id)
             if _key is not None:
-                logger.info(f"Key {callback_id.__name__} created.")
+                logger.info(f"Key {callback_id} created.")
             else:
-                logger.info(f"Key {callback_id.__name__} not available")
+                logger.info(f"Key {callback_id} not available")
 
             logs = await self.w3_socket.eth.get_logs(filter_params)
             try:
@@ -70,6 +68,16 @@ class FallBackSubscriptionHandler:
 
         else:
             raise RuntimeError("Connection not established, it's not possible to fetch logs")
+        
+    async def disconnect(self):
+        """Gracefully disconnects the WebSocket connection."""
+        if self.w3_socket is not None:
+            try:
+                await self.w3_socket.provider.disconnect()
+                self.w3_socket = None
+                logger.info("WebSocket connection closed successfully.")
+            except Exception as e:
+                logger.error(f"Error while closing WebSocket connection: {e}")
 
     
     def is_connected(self) -> bool:

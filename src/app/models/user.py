@@ -16,6 +16,8 @@ class User(SQLModel, table=True):
     balance: float = Field(
         sa_column=Column(DECIMAL(precision=10, scale=2), default=0.00, index=True)
     )
+    prev_block_number: int = Field(default=0, index=True)
+    latest_block_number: int = Field(default=0, index=True)
     is_superuser: bool = Field(default=False)
     is_admin: bool = Field(default=False)
     email: Optional[str] = Field(..., nullable=True, unique=True, schema_extra={"example": "moses@example.com"})
@@ -41,6 +43,7 @@ class Prediction(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id")
     index: int = Field(index=True)
     layer: str = Field(index=True)
+    contract_address: str = Field(index=True)
     match_id: int = Field(index=True)
     result: int = Field(index=True)
     amount: float = Field(
@@ -83,7 +86,8 @@ class Opponent(SQLModel, table=True):
     opponent_wager: float = Field(
         sa_column=Column(DECIMAL(precision=10, scale=2), default=0.00, index=True)
     )
-    result: int
+    result: int = Field(index=True)
+    block_number: int = Field(index=True)
     created_at: Optional[datetime] = Field(sa_column=Column(
         TIMESTAMP(timezone=True),
         nullable=True,

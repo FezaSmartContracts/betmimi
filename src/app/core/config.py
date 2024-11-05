@@ -92,6 +92,9 @@ class ApiFootballSettings(BaseSettings):
     API_FOOTBALL_BASE_URL: str = f"https://v3.football.api-sports.io/"
     API_FOOTBALL_KEY: str = config("API_FOOTBALL_KEY", default="API_FOOTBALL_KEY")
 
+class GeneralWebsocketSettings(BaseSettings):
+    WEBSOCKET_TIMEOUT: int = config("WEBSOCKET_TIMEOUT", default=300)
+
 class EnvironmentOption(Enum):
     LOCAL = "local"
     STAGING = "staging"
@@ -115,6 +118,7 @@ class Settings(
     DefaultRateLimitSettings,
     AlchemySettings,
     ApiFootballSettings,
+    GeneralWebsocketSettings,
     EnvironmentSettings,
 ):
     pass

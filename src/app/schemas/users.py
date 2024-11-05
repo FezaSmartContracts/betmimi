@@ -43,6 +43,8 @@ class UserUpdate(SQLModel):
 
 class UpdateUserBalance(SQLModel):
     balance: float
+    prev_block_number: int
+    latest_block_number: int
 
 class UserUpdateInternal(UserUpdate):
     pass
@@ -55,3 +57,5 @@ class AdminUpdate(SQLModel):
 class UserBalanceRead(SQLModel):
     public_address: str
     balance: float
+    prev_block_number: int
+    latest_block_number: int
