@@ -73,16 +73,7 @@ class PredictionAndOpponents(SQLModel):
     match_id: int
     result: int
     amount: float
-    settled: bool
-    total_opponent_wager: float
-    f_matched: bool
-    p_matched: bool
-    for_sale: bool
-    sold: bool
-    price: float
     created_at: datetime
-    updated_at: Optional[datetime]
-    oppononts: List[Opponent]
     
 
 

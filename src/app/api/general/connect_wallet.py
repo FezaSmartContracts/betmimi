@@ -1,6 +1,5 @@
 from datetime import timedelta
 from typing import Annotated
-import logging
 
 from fastapi import APIRouter, Depends, Request, Response, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,9 +17,7 @@ from ...schemas.users import (
     UserCreate,
     UserPublicAddress,
     UserReadNonce,
-    UserUpdateInternal,
-    UserBalanceRead,
-    UserRead
+    UserUpdateInternal
 )
 from ...core.security import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -86,7 +83,7 @@ async def connect_user_wallet(
        - `dict`: The user's information along with a session token.
     """
     fetched_user: UserReadNonce = await crud_users.get(
-        db=db, schema_to_select=UserReadNonce, public_address=user_data.public_address.lower(), is_deleted=False
+        db=db, schema_to_select=UserReadNonce, public_address=user_data.public_address.lower()
     )
     
     # Ensure user exists
@@ -97,7 +94,11 @@ async def connect_user_wallet(
 
     # Attempt to verify the signature
     try:
-        verify_signature(nonce=nonce, signature=user_data.signature, public_address=user_data.public_address)
+        verify_signature(
+            nonce=nonce,
+            signature=user_data.signature,
+            public_address=user_data.public_address
+        )
     except HTTPException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Signature verification failed")
 
@@ -123,7 +124,14 @@ async def connect_user_wallet(
 
     # Update the nonce after successful connection
     new_nonce = generate_random()
-    await crud_users.update(db, UserUpdateInternal(nonce=new_nonce), id=fetched_user.id)
+    await crud_users.update(
+        db, 
+        UserUpdateInternal(
+            nonce=new_nonce
+            ),
+            id=fetched_user.id, 
+            public_address=fetched_user.public_address
+        )
 
     return {"access_token": access_token, "token_type": "bearer"}
 

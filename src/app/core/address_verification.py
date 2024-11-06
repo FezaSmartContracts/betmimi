@@ -26,5 +26,5 @@ def verify_signature(nonce: str, public_address: str, signature: str) -> bool:
         if str(recovered_address).lower() != public_address.lower():
             raise HTTPException(status_code=400, detail="Invalid signature")
         return True
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid signature")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to process verification: {e}")

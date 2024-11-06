@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 
 from ...api.dependencies import rate_limiter, get_admin
 from ...core.utils import queue
+from ...models.job import Job
 from ...schemas.job import ArbUsdtv1FallBack
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -12,35 +13,35 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
 @router.post(
-        "/task",
-        response_model=Dict[str, str],
-        status_code=201,
-        dependencies=[
-            Depends(get_admin),
-            Depends(rate_limiter)
-        ]
-    )
+    "/usdtv1/task",
+    response_model=Job,
+    status_code=201,
+    dependencies=[
+        Depends(get_admin),
+        Depends(rate_limiter)
+    ]
+)
 async def create_task(params: ArbUsdtv1FallBack) -> Dict[str, str]:
     """Create a new background task. Creates a task for fetching missed event logs during network downtimes.
 
     Specific to `arbitrum-one, USDT`
 
     Parameters
-    ----------
-    name: str
+    ---------
+    - `name: str`
         The message/name or data to be processed by the task.
-    from_block: int
+    - `from_block: int`
         The starting block number for fetching logs.
-    to_block: int
+    - `to_block: int`
         The ending block number for fetching logs.
 
     Note:
     -----
-    Restricted to be called by only users with admin previlages.
+    - Restricted to be called by only users with admin previlages.
 
     Returns
     -------
-    dict[str, str]
+    - `dict[str, str]`
         A dictionary containing the ID of the created task.
     """
     try:
@@ -53,4 +54,22 @@ async def create_task(params: ArbUsdtv1FallBack) -> Dict[str, str]:
         return {"id": job.job_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create task: {str(e)}")
+
+#------------For testing purposes------------
+@router.post("/task", response_model=Job, status_code=201, dependencies=[Depends(rate_limiter)])
+async def create_task(message: str) -> dict[str, str]:
+    """Create a new background task.
+
+    Parameters
+    ----------
+    message: str
+        The message or data to be processed by the task.
+
+    Returns
+    -------
+    dict[str, str]
+        A dictionary containing the ID of the created task.
+    """
+    job = await queue.pool.enqueue_job("sample_background_task", message)  # type: ignore
+    return {"id": job.job_id}
 

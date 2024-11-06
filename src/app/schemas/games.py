@@ -12,6 +12,10 @@ class GameCreate(SQLModel):
 class GameIdRead(SQLModel):
     match_id: int
 
+class GameRead(SQLModel):
+    match_id: int
+    resolved: bool
+
 class GameUpdate(SQLModel):
     pass
 
