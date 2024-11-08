@@ -9,6 +9,7 @@ class PredictionCreate(SQLModel):
     user_id: int
     index: int
     layer: str
+    hash_identifier: str
     match_id: int
     contract_address: str
     result: int
@@ -24,6 +25,7 @@ class PredictionCreate(SQLModel):
 class QuickPredRead(SQLModel):
     id: int
     index: int
+    hash_identifier: str
     match_id: int
     contract_address: str
     total_opponent_wager: float

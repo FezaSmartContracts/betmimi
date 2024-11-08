@@ -31,8 +31,8 @@ async def process_arbitrum_callbacklogs(message, db):
                 else:
                     logger.warning(f"No handler defined for event '{event}'.")
                     break
-            else:
-                logger.error("Event log cannot be identified!")
+        else:
+            logger.error("Event log cannot be identified!")
 
     except FileNotFoundError:
         logger.error("ABI file not found.")

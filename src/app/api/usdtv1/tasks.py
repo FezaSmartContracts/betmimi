@@ -16,10 +16,10 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
     "/usdtv1/task",
     response_model=Job,
     status_code=201,
-    dependencies=[
-        Depends(get_admin),
-        Depends(rate_limiter)
-    ]
+    #dependencies=[
+    #    Depends(get_admin),
+    #    Depends(rate_limiter)
+    #]
 )
 async def create_task(params: ArbUsdtv1FallBack) -> Dict[str, str]:
     """Create a new background task. Creates a task for fetching missed event logs during network downtimes.

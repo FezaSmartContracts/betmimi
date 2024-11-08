@@ -22,6 +22,23 @@ router = APIRouter(tags=["predictions"])
 
 
 
+@router.get("/count")
+async def get_prediction(
+    db: Annotated[AsyncSession, Depends(async_get_db)],
+    matchid: int = Query(..., description="The ID of the match")
+) -> int:
+    """
+    - Returns the number of lays for a given active match
+    """
+    preds = await crud_predictions.count(
+        db,
+        match_id=matchid
+    )
+    if preds:
+        return preds
+    else:
+        return 0
+    
 @router.get("/prediction")
 async def get_prediction(
     db: Annotated[AsyncSession, Depends(async_get_db)],

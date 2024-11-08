@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional, List
 
 from sqlmodel import (
-    Column, SQLModel, Field, Relationship, TIMESTAMP, text, DECIMAL
+    Column, SQLModel, Field, Relationship, TIMESTAMP, text, DECIMAL, UniqueConstraint
 )
 
 
@@ -20,7 +20,7 @@ class User(SQLModel, table=True):
     latest_block_number: int = Field(default=0, index=True)
     is_superuser: bool = Field(default=False)
     is_admin: bool = Field(default=False)
-    email: Optional[str] = Field(..., nullable=True, unique=True, schema_extra={"example": "moses@example.com"})
+    email: Optional[str] = Field(nullable=True, unique=True, schema_extra={"example": "moses@example.com"})
     created_at: Optional[datetime] = Field(sa_column=Column(
         TIMESTAMP(timezone=True),
         nullable=True,
@@ -43,6 +43,7 @@ class Prediction(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id")
     index: int = Field(index=True)
     layer: str = Field(index=True)
+    hash_identifier: str = Field(unique=True, nullable=False, index=True)
     contract_address: str = Field(index=True)
     match_id: int = Field(index=True)
     result: int = Field(index=True)

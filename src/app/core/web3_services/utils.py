@@ -1,5 +1,6 @@
 import os
 import json
+import hashlib
 from typing import Any, Dict, List
 from hexbytes import HexBytes
 from eth_utils import keccak
@@ -76,3 +77,8 @@ def arbitrum_contract_addresses():
         _address = load_contract_address(_key, address_relative_path)
         arbitrum_address.append(_address)
     return arbitrum_address
+
+def generate_unique_id(bet_id: int, match_id: int, contract_address: str) -> str:
+    unique_string = f"{bet_id}_{match_id}_{contract_address}"
+    unique_hash = hashlib.sha256(unique_string.encode()).hexdigest()
+    return unique_hash
