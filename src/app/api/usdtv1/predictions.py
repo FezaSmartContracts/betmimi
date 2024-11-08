@@ -17,27 +17,53 @@ from ...models.user import Opponent, Prediction, User
 from ...schemas.users import UserRead
 from ...schemas.predictions import PredictionRead, PredictionAndOpponents
 from ...schemas.opponents import OpponentRead
+from ...schemas.custom import Count
 
 router = APIRouter(tags=["predictions"])
 
 
+@router.get("/count-all", response_model=Count)
+async def get_all_active_predictions_count(
+    db: Annotated[AsyncSession, Depends(async_get_db)]
+) -> dict:
+    """
+    - Returns the total number of all activae lays
+    """
+    preds_count = await crud_predictions.count(
+        db,
+        settled=False
+    )
+    return Count(number=preds_count)
 
-@router.get("/count")
-async def get_prediction(
+    
+@router.get("/count-by-matchid", response_model=Count)
+async def get_predictions_for_matchid(
     db: Annotated[AsyncSession, Depends(async_get_db)],
     matchid: int = Query(..., description="The ID of the match")
-) -> int:
+) -> dict:
     """
-    - Returns the number of lays for a given active match
+    - Returns the number of lays for a given match
     """
     preds = await crud_predictions.count(
         db,
         match_id=matchid
     )
-    if preds:
-        return preds
-    else:
-        return 0
+    return Count(number=preds)
+
+@router.get("/count-user-active-preds", response_model=Count)
+async def get_predictions_for_matchid(
+    db: Annotated[AsyncSession, Depends(async_get_db)],
+    public_address: str = Query(..., description="User Address")
+) -> dict:
+    """
+    - Returns the number of active lays for a given user
+    """
+    public_address = public_address.lower()
+    preds = await crud_predictions.count(
+        db,
+        public_address=public_address
+    )
+    return Count(number=preds)
     
 @router.get("/prediction")
 async def get_prediction(

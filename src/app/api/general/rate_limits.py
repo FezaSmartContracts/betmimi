@@ -4,21 +4,21 @@ from fastapi import APIRouter, Depends, Request
 from fastcrud.paginated import PaginatedListResponse, compute_offset, paginated_response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..dependencies import get_current_superuser
+from ..dependencies import get_admin
 from ...core.db.database import async_get_db
-from ...core.exceptions.http_exceptions import DuplicateValueException, NotFoundException, RateLimitException
+from ...core.exceptions.http_exceptions import DuplicateValueException, NotFoundException
 from ...crud.crud_rate_limit import crud_rate_limits
 from ...models.rate_limit import RateLimitCreate, RateLimitRead, RateLimitUpdate
 
 router = APIRouter(tags=["rate_limits"])
 
-@router.post("/rate_limit", dependencies=[Depends(get_current_superuser)], status_code=201)
+@router.post("/rate_limit", dependencies=[Depends(get_admin)], status_code=201)
 async def create_rate_limit(
     request: Request, rate_limit: RateLimitCreate, db: Annotated[AsyncSession, Depends(async_get_db)]
 ) -> RateLimitRead:
     """
     - Create a new rate limit.
-    - This endpoint allows a superuser to create a new rate limit rule with a specified path, limit, and period.
+    - This endpoint allows an admin to create a new rate limit rule with a specified path, limit, and period.
     - Args:
         - `request (Request):` The request object.
         - `rate_limit (RateLimitCreate):` The rate limit information to create.
@@ -35,7 +35,12 @@ async def create_rate_limit(
 
     created_rate_limit: RateLimitRead = await crud_rate_limits.create(
         db,
-        RateLimitCreate(name=rate_limit.name)
+        RateLimitCreate(
+            path=rate_limit.path,
+            limit=rate_limit.limit,
+            period=rate_limit.period,
+            name=rate_limit.name
+        )
     )
     return created_rate_limit
 
@@ -88,7 +93,7 @@ async def read_rate_limit(
 
     return db_rate_limit
 
-@router.patch("/rate_limit/{id}", dependencies=[Depends(get_current_superuser)])
+@router.patch("/rate_limit/{id}", dependencies=[Depends(get_admin)])
 async def update_rate_limit(
     request: Request,
     id: int,
@@ -119,7 +124,7 @@ async def update_rate_limit(
     )
     return {"message": "Rate Limit updated"}
 
-@router.delete("/rate_limit/{id}", dependencies=[Depends(get_current_superuser)])
+@router.delete("/rate_limit/{id}", dependencies=[Depends(get_admin)])
 async def delete_rate_limit(
     request: Request, id: int, db: Annotated[AsyncSession, Depends(async_get_db)]
 ) -> dict[str, str]:

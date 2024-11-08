@@ -1,3 +1,4 @@
+import random
 from decimal import Decimal, ROUND_DOWN
 from eth_abi.abi import decode
 from sqlalchemy import text
@@ -29,7 +30,7 @@ from .....schemas.predictions import (
     PredSoldUpdate,
     PredPriceUpdate
 )
-from .helper import generate_unique_id
+from .helper import generate_unique_id, usdt_to_decimal, validate_block_number
 
 logger = logging.getLogger(__name__)
 
@@ -91,191 +92,134 @@ async def game_resolved(payload, db):
     except Exception as e:
         logger.error(f"Error processing 'GameResolved' event: {e}")
 
-
-async def process_usdtv1_deposits(payload, db):
+async def process_usdtv1_deposits(payload, db, max_retries=3, retry_delay=0.1):
     """
     Handler for 'Deposited' event.
     Atomically updates user balance.
     """
     try:
-        # Decode and prepare data
         block_number: int = payload['blockNumber']
         src: str = decode(['address'], payload['topics'][1])[0]
         amount: int = decode(['uint256'], payload['topics'][2])[0]
         public_address = src.lower()
 
-        # Retrieve user's balance information
         wallet: UserBalanceRead | None = await crud_users.get(
             db=db, schema_to_select=UserBalanceRead, public_address=public_address
         )
         if wallet is None:
             raise Exception(f"User {public_address} not found")
 
-        # Validate block number uniqueness to avoid duplicate deposits
-        if wallet['prev_block_number'] or wallet['latest_block_number'] != block_number:
-            if block_number < wallet['latest_block_number']:
-                _prev = block_number
-                _latest = wallet['latest_block_number']
-            else:
-                _prev = wallet['latest_block_number']
-                _latest = block_number
-        else:
-            raise Exception(f"Deposit at {block_number} is already registered!")
-
-        # Convert amount to USDT format
-        converted_amount = (Decimal(amount) / Decimal(10**6)).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
-
-        # Atomic update of balance and block numbers
-        update_query = text("""
-        UPDATE "user"
-        SET balance = balance + :amount,
-            prev_block_number = :prev_block,
-            latest_block_number = :latest_block
-        WHERE public_address = :public_address AND latest_block_number < :latest_block
-        RETURNING balance
-        """)
-
-        # Execute the atomic update
-        result = await db.execute(
-            update_query,
-            {
-                "amount": converted_amount,
-                "public_address": public_address,
-                "prev_block": _prev,
-                "latest_block": _latest
-            }
+        bn_list = validate_block_number(
+            wallet['prev_block_number'],
+            wallet['latest_block_number'],
+            block_number
         )
 
-        # Check if the update was successful
-        if result.rowcount == 0:
-            raise Exception(f"Balance update failed for user {public_address} due to concurrent modification.")
+        _prev = bn_list[0]
+        _latest = bn_list[1]
+        converted_amount = usdt_to_decimal(amount)
 
-        logger.info(f"Processed deposit: src={public_address}, amount={converted_amount}")
-        
+        for attempt in range(max_retries):
+            update_query = text("""
+            UPDATE "user"
+            SET balance = balance + :amount,
+                prev_block_number = :prev_block,
+                latest_block_number = :latest_block
+            WHERE public_address = :public_address AND latest_block_number < :latest_block
+            RETURNING balance
+            """)
+
+            result = await db.execute(
+                update_query,
+                {
+                    "amount": converted_amount,
+                    "public_address": public_address,
+                    "prev_block": _prev,
+                    "latest_block": _latest
+                }
+            )
+
+            if result.rowcount > 0:
+                logger.info(f"Processed deposit: src={public_address}, amount={converted_amount}")
+                break
+            else:
+                logger.warning(f"Attempt {attempt + 1}: Concurrent modification for user {public_address}. Retrying...")
+                await asyncio.sleep(retry_delay * (2 ** attempt) * random.uniform(0.8, 1.2))
+        else:
+            raise Exception(f"Balance update failed for user {public_address} after {max_retries} attempts.")
+    except IntegrityError:
+        logger.error(f"IntegrityError: possible duplicate deposit for {public_address}")
     except Exception as e:
-        logger.error(f"Error processing 'Deposited' event: {e}")
+        logger.error(f"Error Processing 'Deposited' event: {e}")
 
 
-async def process_usdtv1_claims(payload, db):
+
+async def process_usdtv1_claims(payload, db, max_retries=3, retry_delay=0.1):
     """
     Handler for `Claimed` event.
     Updates user balance atomically.
     """
     try:
-        # Decode and prepare data
         block_number: int = payload['blockNumber']
         dst: str = decode(['address'], payload['topics'][1])[0]
         amount: int = decode(['uint256'], payload['topics'][2])[0]
         public_address = dst.lower()
 
-        # Fetch the user's balance information
         wallet: UserBalanceRead | None = await crud_users.get(
             db=db, schema_to_select=UserBalanceRead, public_address=public_address
         )
         if wallet is None:
             raise Exception(f"User {public_address} not found")
-        
-        # Validate the block number for uniqueness
-        if wallet['prev_block_number'] or wallet['latest_block_number'] != block_number:
-            if block_number < wallet['latest_block_number']:
-                _prev = block_number
-                _latest = wallet['latest_block_number']
-            else:
-                _prev = wallet['latest_block_number']
-                _latest = block_number
-        else:
-            raise Exception(f"Deposit at {block_number} is already registered!")
 
-        # Convert the amount to USDT
-        converted_amount = (Decimal(amount) / Decimal(10**6)).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
-
-        # Atomic balance update with SQL
-        update_query = text("""
-        UPDATE "user"
-        SET balance = balance - :amount,
-            prev_block_number = :prev_block,
-            latest_block_number = :latest_block
-        WHERE public_address = :public_address AND latest_block_number < :latest_block
-        RETURNING balance
-        """)
-
-        # Execute the atomic update
-        result = await db.execute(
-            update_query,
-            {
-                "amount": converted_amount,
-                "public_address": public_address,
-                "prev_block": _prev,
-                "latest_block": _latest
-            }
+        # Determine the correct block numbers for atomic update
+        bn_list = validate_block_number(
+            wallet['prev_block_number'],
+            wallet['latest_block_number'],
+            block_number
         )
+        _prev = bn_list[0]
+        _latest = bn_list[1]
 
-        # Check if the update was successful
-        if result.rowcount == 0:
-            raise Exception(f"Balance update failed for user {public_address} due to concurrent modification.")
+        converted_amount = usdt_to_decimal(amount)
 
-        logger.info(f"Processed withdraw: dst={public_address}, amount={converted_amount}")
-        
+        # Retry loop with exponential backoff and jitter
+        for attempt in range(max_retries):
+            try:
+                update_query = text("""
+                UPDATE "user"
+                SET balance = balance - :amount,
+                    prev_block_number = :prev_block,
+                    latest_block_number = :latest_block
+                WHERE public_address = :public_address AND latest_block_number < :latest_block
+                RETURNING balance
+                """)
+
+                result = await db.execute(
+                    update_query,
+                    {
+                        "amount": converted_amount,
+                        "public_address": public_address,
+                        "prev_block": _prev,
+                        "latest_block": _latest
+                    }
+                )
+
+                if result.rowcount > 0:
+                    logger.info(f"Processed claim: dst={public_address}, amount={converted_amount}")
+                    break
+                else:
+                    logger.warning(f"Concurrent modification detected for user {public_address}. Retrying...")
+                    await asyncio.sleep(retry_delay * (2 ** attempt) * random.uniform(0.8, 1.2))  # Exponential backoff with jitter
+
+            except IntegrityError:
+                logger.error(f"Integrity error during balance update for user {public_address}, attempt {attempt + 1}")
+                await asyncio.sleep(retry_delay * (2 ** attempt) * random.uniform(0.8, 1.2))  # Exponential backoff with jitter
+        else:
+            raise Exception(f"Balance update failed for user {public_address} after {max_retries} attempts.")
+
     except Exception as e:
         logger.error(f"Error processing 'Claimed' event: {e}")
 
-"""async def process_usdtv1_lays(payload, db):
-    '''
-    Handler for `Predicted` event.
-
-    Adds Prediction to database.
-    '''
-    try:
-        _address: str = payload['address']
-        bet_id: int = decode(['uint256'], payload['topics'][1])[0]
-        layer: str = decode(['address'], payload['topics'][2])[0]
-        gameid: int = decode(['uint256'], payload['topics'][3])[0]
-        non_indexed_data = decode(["uint256", "uint256"], payload['data'])
-        lay_amount: int = non_indexed_data[0]
-        result: int = non_indexed_data[1]
-        
-
-        public_address = layer.lower()
-        _contract_address = _address.lower()
-        hash_id = generate_unique_id(bet_id, gameid, _contract_address)
-
-        _key = (bet_id, gameid, _contract_address)
-
-        wallet: UserRead | None = await crud_users.get(
-        db=db, schema_to_select=UserRead, public_address=public_address
-        )
-
-        if wallet is None:
-            raise Exception(f"User {public_address} not found")
-        
-        # ensure prediction is only registered once
-        pred: QuickPredRead | None = await crud_predictions.get(
-            db=db,
-            schema_to_select=QuickPredRead,
-            hash_identifier=hash_id
-        )
-        if pred:
-            raise Exception(f"Prediction Index={bet_id} and ID={gameid} already registered")
-        
-        converted_amount = (Decimal(lay_amount) / Decimal(10**6)).quantize(Decimal("0.01"), rounding=ROUND_DOWN) # USDT
-        await crud_predictions.create(
-            db,
-            PredictionCreate(
-                user_id=wallet['id'],
-                index=bet_id,
-                layer=layer,
-                hash_identifier=hash_id,
-                match_id=gameid,
-                contract_address=_contract_address,
-                result=result,
-                amount=converted_amount
-            )
-        )
-        logger.info(f"Processed Lay: {_key}")
-    except IntegrityError:
-        logger.error(f"Duplicate prediction detected for Index={bet_id} and Game ID={gameid}")
-    except Exception as e:
-        logger.error(f"Error Processing 'Predicted' event: {e}")"""
 
 async def process_usdtv1_lays(payload, db):
     '''
@@ -304,7 +248,7 @@ async def process_usdtv1_lays(payload, db):
         if wallet is None:
             raise Exception(f"User {public_address} not found")
         
-        converted_amount = (Decimal(lay_amount) / Decimal(10**6)).quantize(Decimal("0.01"), rounding=ROUND_DOWN)  # USDT
+        converted_amount = usdt_to_decimal(lay_amount)
 
         # Use the ON CONFLICT upsert to avoid duplicate entries
         stmt = insert(Prediction).values(
@@ -322,7 +266,7 @@ async def process_usdtv1_lays(payload, db):
         await db.commit()
 
         if result.rowcount == 0:
-            logger.error(f"Duplicate detected and ignored for {_key}")
+            logger.warning(f"Duplicate detected and ignored for {_key}")
         else:
             logger.info(f"Processed Lay: {_key}")
     
@@ -331,134 +275,12 @@ async def process_usdtv1_lays(payload, db):
     except Exception as e:
         logger.error(f"Error Processing 'Predicted' event: {e}")
 
-"""async def process_usdtv1_lays(payload, db):
-    '''
-    Handler for `Predicted` event.
-
-    Adds Prediction to database.
-    '''
-    try:
-        _address: str = payload['address']
-        bet_id: int = decode(['uint256'], payload['topics'][1])[0]
-        layer: str = decode(['address'], payload['topics'][2])[0]
-        gameid: int = decode(['uint256'], payload['topics'][3])[0]
-        non_indexed_data = decode(["uint256", "uint256"], payload['data'])
-        lay_amount: int = non_indexed_data[0]
-        result: int = non_indexed_data[1]
-        
-
-        public_address = layer.lower()
-        _contract_address = _address.lower()
-
-        lock_key = (bet_id, gameid, _contract_address)
-        #lock = prediction_locks.setdefault(lock_key, Lock())
-        if lock_key not in prediction_locks: 
-            prediction_locks[lock_key] = asyncio.Lock() 
-        lock = prediction_locks[lock_key]
-
-        wallet: UserRead | None = await crud_users.get(
-        db=db, schema_to_select=UserRead, public_address=public_address
-        )
-
-        if wallet is None:
-            raise Exception(f"User {public_address} not found")
-        
-        # ensure prediction is only registered once
-        async with lock:
-            # Proceed with processing
-            prediction = await crud_predictions.get(
-                db=db,
-                schema_to_select=QuickPredRead,
-                index=bet_id,
-                match_id=gameid,
-                contract_address=_address
-            )
-            
-            if prediction:
-                raise Exception(f"Prediction for Index={bet_id}, Game={gameid}, and Address={_address} already exists")
-            
-            # Code for creating a new prediction record
-            converted_amount = (Decimal(lay_amount) / Decimal(10**6)).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
-            await crud_predictions.create(
-                db,
-                PredictionCreate(
-                    user_id=wallet['id'],
-                    index=bet_id,
-                    layer=layer,
-                    match_id=gameid,
-                    contract_address=_address,
-                    result=result,
-                    amount=converted_amount
-                )
-            )
-            logger.info(f"Processed prediction successfully for {lock_key}")
-    except IntegrityError:
-        logger.error(f"Duplicate prediction detected for Index={bet_id} and Game ID={gameid}")
-    except Exception as e:
-        logger.error(f"Error Processing 'Predicted' event: {e}")"""
-
-"""async def process_usdtv1_lays(payload, db):
-    _address: str = payload['address']
-    bet_id: int = decode(['uint256'], payload['topics'][1])[0]
-    layer: str = decode(['address'], payload['topics'][2])[0]
-    gameid: int = decode(['uint256'], payload['topics'][3])[0]
-    non_indexed_data = decode(["uint256", "uint256"], payload['data'])
-    lay_amount: int = non_indexed_data[0]
-    result: int = non_indexed_data[1]
-
-    public_address = layer.lower()
-    _contract_address = _address.lower()
-
-    try:
-        async with db.begin():  # Atomic transaction start
-            # Lock existing predictions for this unique key
-            stmt = select(Prediction).where(
-                Prediction.index == bet_id,
-                Prediction.match_id == gameid,
-                Prediction.contract_address == _contract_address
-            ).with_for_update()
-            pred = await db.execute(stmt)
-            pred = pred.scalar()
-
-            if pred:
-                raise Exception(f"Prediction Index={bet_id} and Game ID={gameid} already registered")
-
-            # Retrieve wallet info
-            wallet: UserRead | None = await crud_users.get(
-                db=db, schema_to_select=UserRead, public_address=public_address
-            )
-            if wallet is None:
-                raise Exception(f"User {public_address} not found")
-
-            # Convert lay amount from smallest currency unit
-            converted_amount = (Decimal(lay_amount) / Decimal(10**6)).quantize(
-                Decimal("0.01"), rounding=ROUND_DOWN
-            )
-
-            # Insert the new prediction
-            await crud_predictions.create(
-                db,
-                PredictionCreate(
-                    user_id=wallet['id'],
-                    index=bet_id,
-                    layer=layer,
-                    match_id=gameid,
-                    contract_address=_contract_address,
-                    result=result,
-                    amount=converted_amount
-                )
-            )
-            logger.info(f"Processed Lay: {bet_id}, Game ID: {gameid}, Address: {_contract_address}")
-
-    except IntegrityError:
-        logger.error(f"Duplicate prediction detected for Index={bet_id} and Game ID={gameid}")
-    except Exception as e:
-        logger.error(f"Error processing 'Predicted' event: {e}")"""
 
 async def process_usdtv1_backs(payload, db):
     """
-    #Handler for `Backed` event.
-    #Creates new `Opponent` and updates existing `Prediction` with atomic increment.
+    Handler for `Backed` event.
+
+    Creates new `Opponent` and updates existing `Prediction` with atomic increment.
     """
     try:
         # Decode and prepare data
@@ -493,12 +315,10 @@ async def process_usdtv1_backs(payload, db):
             schema_to_select=QuickPredRead,
             hash_identifier=hash_id
         )
-        #pred = await wait_for_prediction(db, bet_id, gameid, _contract_address)
         if pred is None:
             raise Exception(f"No prediction of index {bet_id} for Game: {gameid} from {_contract_address}")
         
-        # Convert back_amount to USDT (2 decimal places)
-        converted_amount = (Decimal(back_amount) / Decimal(10**6)).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+        converted_amount = usdt_to_decimal(back_amount)
 
         # Create a new opponent entry
         await crud_opponent.create(
@@ -536,104 +356,12 @@ async def process_usdtv1_backs(payload, db):
             }
         )
 
-        # Check if the update affected any row
         if result.rowcount == 0:
             raise Exception(f"No prediction of index {bet_id} for Game: {gameid} from {_contract_address}")
-
         logger.info("Prediction Updated successfully.")
     except Exception as e:
         logger.error(f"Error Processing 'Backed' event: {e}")
 
-"""async def process_usdtv1_backs(payload, db):
-    try:
-        # Decode and prepare data
-        _address = payload['address']
-        bet_id = decode(['uint256'], payload['topics'][1])[0]
-        backer = decode(['address'], payload['topics'][2])[0]
-        gameid = decode(['uint256'], payload['topics'][3])[0]
-        non_indexed_data = decode(["uint256", "uint256"], payload['data'])
-        back_amount = non_indexed_data[0]
-        result = non_indexed_data[1]
-        block_number = payload['blockNumber']
-        
-        public_address = backer.lower()
-        _contract_address = _address.lower()
-
-        # Lock key for concurrency control
-        lock_key = (bet_id, gameid, _contract_address)
-        lock = opponent_locks.setdefault(lock_key, Lock())
-
-        await asyncio.sleep(1)
-
-        # Process within lock
-        async with lock:
-            # Check if opponent already registered
-            opp = await crud_opponent.get(
-                db=db,
-                schema_to_select=QuickOppRead,
-                match_id=gameid,
-                prediction_index=bet_id,
-                opponent_address=public_address,
-                block_number=block_number
-            )
-            if opp:
-                raise Exception(f"Back already registered! Block_Number={block_number}")
-
-            # Fetch the corresponding prediction
-            pred = await crud_predictions.get(
-                db=db,
-                schema_to_select=QuickPredRead,
-                index=bet_id,
-                match_id=gameid,
-                contract_address=_contract_address
-            )
-            if pred is None:
-                raise Exception(f"No prediction of index {bet_id} for Game: {gameid} from {_contract_address}")
-
-            # Convert and create opponent entry
-            converted_amount = (Decimal(back_amount) / Decimal(10**6)).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
-            await crud_opponent.create(
-                db,
-                OpponentCreate(
-                    prediction_id=pred['id'],
-                    match_id=gameid,
-                    prediction_index=bet_id,
-                    opponent_address=public_address,
-                    opponent_wager=converted_amount,
-                    result=result,
-                    block_number=block_number
-                )
-            )
-            logger.info("Opponent Processed Successfully.")
-
-            # Update total_opponent_wager and match flags
-            update_query = text("""
-            #UPDATE prediction
-            #SET total_opponent_wager = total_opponent_wager + :amount,
-            #    f_matched = CASE WHEN total_opponent_wager + :amount >= amount THEN true ELSE f_matched END,
-            #    p_matched = true
-            #WHERE index = :bet_id AND match_id = :gameid AND contract_address = :contract_address
-            #RETURNING total_opponent_wager
-""")
-
-            result = await db.execute(
-                update_query,
-                {
-                    "amount": converted_amount,
-                    "bet_id": bet_id,
-                    "gameid": gameid,
-                    "contract_address": _contract_address
-                }
-            )
-
-            # Check if any rows were updated
-            if result.rowcount == 0:
-                raise Exception(f"No prediction of index {bet_id} for Game: {gameid} from {_contract_address}")
-
-            logger.info("Prediction Updated successfully.")
-
-    except Exception as e:
-        logger.error(f"Error Processing 'Backed' event: {e}")"""
 
 async def process_usdtv1_bet_sell_initiated(payload, db):
     """
@@ -660,7 +388,7 @@ async def process_usdtv1_bet_sell_initiated(payload, db):
         if pred is None:
             raise Exception(f"No prediction of index {bet_id} for Game: {gameid}")
         
-        converted_amount = (Decimal(amount) / Decimal(10**6)).quantize(Decimal("0.01"), rounding=ROUND_DOWN) # USDT
+        converted_amount = usdt_to_decimal(amount)
         await crud_predictions.update(
             db,
             PredInitialUpdate(
@@ -700,7 +428,7 @@ async def process_usdtv1_selling_price_changed(payload, db):
         if pred is None:
             raise Exception(f"No prediction of index {bet_id} for Game: {gameid}")
         
-        converted_amount = (Decimal(new_amount) / Decimal(10**6)).quantize(Decimal("0.01"), rounding=ROUND_DOWN) # USDT
+        converted_amount = usdt_to_decimal(new_amount)
         await crud_predictions.update(
             db,
             PredPriceUpdate(

@@ -1,15 +1,14 @@
 from typing import Annotated, Any
-from datetime import datetime
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Query
 from fastcrud.paginated import PaginatedListResponse, compute_offset, paginated_response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies import get_current_superuser
 from ...core.db.database import async_get_db
-from ...core.exceptions.http_exceptions import DuplicateValueException, NotFoundException, RateLimitException
+from ...core.exceptions.http_exceptions import NotFoundException
 from ...crud.crud_users import crud_users
-from ...schemas.users import AdminUpdate, UserPublicAddress, UserRead
+from ...schemas.users import AdminUpdate, UserRead
 
 router = APIRouter(tags=["administration"])
 
@@ -44,12 +43,12 @@ async def read_admins(
 
 
 
-@router.patch("/update/admin/{public_address}", dependencies=[Depends(get_current_superuser)])
+@router.patch("/update-admin", dependencies=[Depends(get_current_superuser)])
 async def update_admin(
     request: Request,
-    public_address: str,
     values: AdminUpdate,
     db: Annotated[AsyncSession, Depends(async_get_db)],
+    public_address: str = Query(..., description="User Address")
 ) -> dict[str, str]:
     """
     - Update a specific User(Admin) by Ethereum address.
@@ -71,7 +70,7 @@ async def update_admin(
 
     await crud_users.update(
         db,
-        AdminUpdate(is_superuser=values.is_superuser),
+        AdminUpdate(is_superuser=values.is_admin),
         public_address=address
     )
-    return {"message": f"Admin Status for {address} updated to {values.is_superuser}"}
+    return {"message": f"Admin Status for {address} updated to {values.is_admin}"}

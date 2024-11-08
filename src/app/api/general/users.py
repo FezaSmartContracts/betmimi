@@ -1,4 +1,5 @@
 from typing import Annotated, Any
+from fastapi import Query
 
 from fastapi import APIRouter, Depends, Request
 from fastcrud.paginated import PaginatedListResponse, compute_offset, paginated_response
@@ -9,11 +10,21 @@ from ...core.db.database import async_get_db
 from ...core.exceptions.http_exceptions import DuplicateValueException, NotFoundException
 from ...crud.crud_rate_limit import crud_rate_limits
 from ...crud.crud_users import crud_users
-from ...schemas.users import UserRead, UserEmailUpdate
+from ...schemas.users import UserRead, UserEmailUpdate, QuickBalanceRead
 
 router = APIRouter(tags=["users"])
 
 
+@router.get("/user-balance", dependencies=[Depends(get_current_superuser)], response_model=QuickBalanceRead)
+async def read_user_balance(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(async_get_db)],
+    public_address: str = Query(..., description="User Address")
+) -> QuickBalanceRead:
+    user_balance: QuickBalanceRead | None = await crud_users.get(
+        db=db, schema_to_select=QuickBalanceRead, public_address=public_address.lower()
+    )
+    return user_balance
 
 
 @router.get("/users", response_model=PaginatedListResponse[UserRead])
@@ -25,8 +36,7 @@ async def read_users(
         offset=compute_offset(page, items_per_page),
         limit=items_per_page,
         return_as_model=True,
-        schema_to_select=UserRead,
-        is_deleted=False,
+        schema_to_select=UserRead
     )
 
     response: dict[str, Any] = paginated_response(crud_data=users_data, page=page, items_per_page=items_per_page)
@@ -41,7 +51,7 @@ async def read_users_me(request: Request, current_user: Annotated[UserRead, Depe
 @router.get("/user/{public_address}", response_model=UserRead)
 async def read_user(request: Request, public_address: str, db: Annotated[AsyncSession, Depends(async_get_db)]) -> dict:
     db_user: UserRead | None = await crud_users.get(
-        db=db, schema_to_select=UserRead, public_address=public_address.lower(), is_deleted=False
+        db=db, schema_to_select=UserRead, public_address=public_address.lower()
     )
     if db_user is None:
         raise NotFoundException("User not found")

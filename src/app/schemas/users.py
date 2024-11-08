@@ -59,3 +59,6 @@ class UserBalanceRead(SQLModel):
     balance: float
     prev_block_number: int
     latest_block_number: int
+
+class QuickBalanceRead(SQLModel):
+    balance: int
