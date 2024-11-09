@@ -32,7 +32,8 @@ from .....schemas.predictions import (
 )
 from .helper import generate_unique_id, usdt_to_decimal, validate_block_number
 from ....akabokisi.manager import MailboxManager
-from ....constants import GAME_REGISTERED
+from ....constants import GAME_REGISTERED, PREDICTION_LAYED
+from ....akabokisi.messages import on_game_register, on_lay
 
 logger = logging.getLogger(__name__)
 
@@ -63,8 +64,10 @@ async def register_games(payload, db):
                 )
             )
             logger.info(f"New game registered: ID={_id}")
+
             mail = MailboxManager()
-            await mail.add_address_to_list("mosesmuwawu@gmail.com", GAME_REGISTERED)
+            message = on_game_register(_id)
+            await mail.add_data_to_list("mosesmuwawu@gmail.com", GAME_REGISTERED, "New Game Registered", message)
         else:
             logger.info(f"Game {_id} already registered!")
     except Exception as e:
@@ -273,6 +276,10 @@ async def process_usdtv1_lays(payload, db):
             logger.warning(f"Duplicate detected and ignored for {_key}")
         else:
             logger.info(f"Processed Lay: {_key}")
+
+        mail = MailboxManager()
+        message = on_lay(converted_amount)
+        await mail.add_data_to_list("mosikoproducts@gmail.com", PREDICTION_LAYED, "Prediction Layed", message)
     
     except IntegrityError:
         logger.error(f"Duplicate prediction detected for Index={bet_id} and Game ID={gameid}")

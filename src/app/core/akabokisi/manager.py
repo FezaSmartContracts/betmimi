@@ -1,30 +1,35 @@
-import re
-import asyncio
-from typing import List
-
-from eth_typing import HexStr
-from web3 import AsyncWeb3
-from web3.providers.persistent import WebSocketProvider
-from web3.types import SubscriptionType
-from websockets import ConnectionClosed, ConnectionClosedError
-from redis.asyncio import Redis
+import os
 import pickle
+from typing import List, Dict
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from redis.asyncio import Redis
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, To
 from app.core.logger import logging
 from app.core.config import settings
 from .topics import event_queue_dict
+from ..constants import USER_NAME
+from .messages import support_link
 
 logger = logging.getLogger(__name__)
 
-class MailboxManager:
+# Set up Jinja2 environment for email templates
+template_dir = os.path.join(os.path.dirname(__file__), "templates")
+env = Environment(
+    loader=FileSystemLoader(template_dir),
+    autoescape=select_autoescape(["html", "xml"])
+)
 
+class MailboxManager:
     def __init__(self):
         self.redis = Redis(host=settings.REDIS_QUEUE_HOST, port=settings.REDIS_QUEUE_PORT, db=0)
 
-    async def add_address_to_list(self, address: str, relevant_queue_name: str) -> None:
+    async def add_data_to_list(self, address: str, relevant_queue_name: str, subject: str, body: str) -> None:
+        """Adds specific email data to Redis queue"""
+        _data = {"address": address, "subject": subject, "body": body}
+        data = pickle.dumps(_data)
         try:
-            await self.redis.rpush(relevant_queue_name, address)
+            await self.redis.rpush(relevant_queue_name, data)
             logger.info(f"Email {address} added to Queue")
         except Exception as e:
             logger.error(f"Failed to add email to queue due to: {e}")
@@ -32,29 +37,61 @@ class MailboxManager:
     async def process_emails(self) -> None:
         try:
             event_queues = event_queue_dict()
-            for key, value in event_queues.items():
-                email_addresses = await self.redis.lrange(value, 0, -1)
-                await self.redis.ltrim(value, 1, 0)  
-                email_addresses = [email.decode('utf-8') if isinstance(email, bytes) else str(email) for email in email_addresses]
-                await self._process_emails(email_addresses)
+            for queue_name in event_queues.values():
+                data = await self.redis.lrange(queue_name, 0, -1)
+                await self.redis.ltrim(queue_name, 1, 0)  # Clear the queue
+
+                # Batch emails by subject and body
+                batch = self._group_emails_by_content(data)
+
+                # Send emails in batches
+                for (subject, body), email_addresses in batch.items():
+                    await self._process_emails(email_addresses, subject, body)
         except Exception as e:
             logger.error(f"Failed to process emails: {e}")
 
-    async def _process_emails(self, emails: List[str]):
-        to_emails = [To(email) for email in emails]
-        message = Mail(
-        from_email=settings.FROM_EMAIL,
-        to_emails=to_emails,
-        subject="Julie!",
-        html_content="GoodMorning"
-        )
+    def _group_emails_by_content(self, data: List[bytes]) -> Dict[tuple, List[str]]:
+        """
+        Groups emails by subject and body for batch processing.
+        Returns a dictionary where each key is a (subject, body) tuple,
+        and each value is a list of email addresses.
+        """
+        batch = {}
+        for _data in data:
+            email_data = pickle.loads(_data)
+            subject = email_data["subject"]
+            body = email_data["body"]
+            address = email_data["address"]
 
+            key = (subject, body)
+            if key not in batch:
+                batch[key] = []
+            batch[key].append(address)
+        
+        return batch
+
+    async def _process_emails(self, emails: List[str], subject: str, body: str):
+        """Send batch emails using SendGrid"""
         try:
+            template = env.get_template("email_template.html")
+            html_content = template.render(
+                subject=subject,
+                body_message=body,
+                recipient_name=USER_NAME,
+                support_link=support_link()
+            )
+
+            to_emails = [To(email) for email in emails]
+            message = Mail(
+                from_email=settings.FROM_EMAIL,
+                to_emails=to_emails,
+                subject=subject,
+                html_content=html_content
+            )
+
             sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
             response = sg.send(message)
-            logger.info(f"Email sent successfully to {emails}. Status code: {response.status_code}")
-    
+            logger.info(f"Batch email sent successfully to {len(emails)} recipients. Status code: {response.status_code}")
+
         except Exception as e:
-            logger.error(f"Failed to process email: {e}")
-    
-    
+            logger.error(f"Failed to send batch email to {emails}: {e}")
