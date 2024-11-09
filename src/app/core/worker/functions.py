@@ -5,7 +5,8 @@ from redis.asyncio import Redis
 from arq.worker import Worker
 from ...core.logger import logging
 from ..web3_services.processor import BatchProcessor
-from ..web3_services.strings import ALCHEMY_REDIS_QUEUE_NAME, ALCHEMY_INPROCESSING_QUEUE
+from ..akabokisi.manager import MailboxManager
+from ..constants import ALCHEMY_REDIS_QUEUE_NAME, ALCHEMY_INPROCESSING_QUEUE
 from ...core.db.database import async_get_db
 from ..web3_services.arbitrum_one.functions import queue_missed_events_for_usdtv1_arb_alchemy
 from app.core.config import settings
@@ -19,6 +20,15 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 # -------- background tasks --------
 async def sample_background_task(ctx: Worker, name: str) -> str:
     await asyncio.sleep(5)
+    return f"Task {name} is complete!"
+
+async def send_email(ctx: Worker, name: str) -> str:
+    mail = MailboxManager()
+    try:
+        await mail.process_emails()
+        logger.info(f"Emails Sent!")
+    except Exception as e:
+        logger.error(f"Email sending failed due to: {e}")
     return f"Task {name} is complete!"
     
 async def process_data(ctx):

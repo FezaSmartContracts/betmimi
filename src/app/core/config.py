@@ -92,6 +92,10 @@ class ApiFootballSettings(BaseSettings):
     API_FOOTBALL_BASE_URL: str = f"https://v3.football.api-sports.io/"
     API_FOOTBALL_KEY: str = config("API_FOOTBALL_KEY", default="API_FOOTBALL_KEY")
 
+class SendgridSettings(BaseSettings):
+    SENDGRID_API_KEY: str = config("SENDGRID_API_KEY", default="SENDGRID_API_KEY")
+    FROM_EMAIL: str = config("FROM_EMAIL", default="FROM_EMAIL")
+
 class GeneralWebsocketSettings(BaseSettings):
     WEBSOCKET_TIMEOUT: int = config("WEBSOCKET_TIMEOUT", default=300)
 
@@ -119,6 +123,7 @@ class Settings(
     AlchemySettings,
     ApiFootballSettings,
     GeneralWebsocketSettings,
+    SendgridSettings,
     EnvironmentSettings,
 ):
     pass

@@ -3,7 +3,7 @@ import signal
 from web3_services.manager import SubscriptionHandler
 from app.core.logger import logging
 from app.core.config import settings
-from web3_services.strings import ALCHEMY_SUBSCRIPTIONS_QUEUE_NAME, ALCHEMY_REDIS_QUEUE_NAME
+from app.core.constants import ALCHEMY_SUBSCRIPTIONS_QUEUE_NAME, ALCHEMY_REDIS_QUEUE_NAME
 
 from .functions import init_subscribe_to_arb_events
 

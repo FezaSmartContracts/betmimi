@@ -21,7 +21,7 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
     #    Depends(rate_limiter)
     #]
 )
-async def create_task(params: ArbUsdtv1FallBack) -> Dict[str, str]:
+async def create_fall_back_task(params: ArbUsdtv1FallBack) -> Dict[str, str]:
     """Create a new background task. Creates a task for fetching missed event logs during network downtimes.
 
     Specific to `arbitrum-one, USDT`
@@ -54,6 +54,23 @@ async def create_task(params: ArbUsdtv1FallBack) -> Dict[str, str]:
         return {"id": job.job_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create task: {str(e)}")
+
+@router.post("/email-task", response_model=Job, status_code=201)
+async def create_email_task(message: str) -> dict[str, str]:
+    """Create a new background task.
+
+    Parameters
+    ----------
+    message: str
+        The message or data to be processed by the task.
+
+    Returns
+    -------
+    dict[str, str]
+        A dictionary containing the ID of the created task.
+    """
+    job = await queue.pool.enqueue_job("send_email", message)  # type: ignore
+    return {"id": job.job_id}
 
 #------------For testing purposes------------
 @router.post("/task", response_model=Job, status_code=201, dependencies=[Depends(rate_limiter)])

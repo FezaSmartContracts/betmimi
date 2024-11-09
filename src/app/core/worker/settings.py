@@ -7,7 +7,8 @@ from .functions import (
     shutdown,
     startup,
     process_data,
-    call_usdtv1_arb_alchemy_fallback
+    call_usdtv1_arb_alchemy_fallback,
+    send_email
 )
 
 REDIS_QUEUE_HOST = settings.REDIS_QUEUE_HOST
@@ -16,7 +17,8 @@ REDIS_QUEUE_PORT = settings.REDIS_QUEUE_PORT
 class WorkerSettings:
     functions = [
         sample_background_task,
-        call_usdtv1_arb_alchemy_fallback
+        call_usdtv1_arb_alchemy_fallback,
+        send_email
 
     ]
     redis_settings = RedisSettings(host=REDIS_QUEUE_HOST, port=REDIS_QUEUE_PORT)

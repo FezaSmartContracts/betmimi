@@ -31,6 +31,8 @@ from .....schemas.predictions import (
     PredPriceUpdate
 )
 from .helper import generate_unique_id, usdt_to_decimal, validate_block_number
+from ....akabokisi.manager import MailboxManager
+from ....constants import GAME_REGISTERED
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +63,8 @@ async def register_games(payload, db):
                 )
             )
             logger.info(f"New game registered: ID={_id}")
+            mail = MailboxManager()
+            await mail.add_address_to_list("mosesmuwawu@gmail.com", GAME_REGISTERED)
         else:
             logger.info(f"Game {_id} already registered!")
     except Exception as e:
