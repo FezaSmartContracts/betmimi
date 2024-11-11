@@ -69,4 +69,7 @@ class QuickUpdateUserBalance(SQLModel):
 class QuickAdminRead(SQLModel):
     public_address: str
     is_admin: bool
-    email: str
+    email: Optional[str]
+
+class QuickEmailRead(SQLModel):
+    email: Optional[str]

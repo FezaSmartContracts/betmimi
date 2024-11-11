@@ -9,3 +9,4 @@ USER_NAME = f"Mimion"
 #------------mail event-specific queue names-----
 GAME_REGISTERED = f"game_registered_queue"
 PREDICTION_LAYED = f"prediction_layed_queue"
+REVENUE_WITHDRAW_ALERT = f"revenue_withdraw_alert_queue"

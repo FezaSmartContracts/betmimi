@@ -28,3 +28,12 @@ def on_lay(amount: float) -> str:
 
 def support_link() -> str:
     return "https://discord.gg/REJHCvre"
+
+def on_revenue_withdrawal(amount: float, address: str, email: str) -> str:
+    return (
+        f"A revenue withdrawal of ${amount:.2f} has been processed successfully by;\n"
+        f"- Wallet Address: {address}\n"
+        f"- Email: {email}\n\n"
+        "If you find this activity suspicious, please report it to our team immediately."
+    )
+

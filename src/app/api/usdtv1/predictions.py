@@ -14,10 +14,12 @@ from ...crud.crud_predictions import crud_predictions
 from ...crud.crud_users import crud_users
 from ...models.user import Opponent, Prediction, User
 
-from ...schemas.users import UserRead
+from ...schemas.users import UserRead, QuickAdminRead
 from ...schemas.predictions import PredictionRead, PredictionAndOpponents
 from ...schemas.opponents import OpponentRead
 from ...schemas.custom import Count
+from app.core.logger import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["predictions"])
 
@@ -64,7 +66,7 @@ async def get_predictions_for_matchid(
         public_address=public_address
     )
     return Count(number=preds)
-    
+
 @router.get("/prediction")
 async def get_prediction(
     db: Annotated[AsyncSession, Depends(async_get_db)],
