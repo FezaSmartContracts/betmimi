@@ -1,8 +1,7 @@
 import random
-from decimal import Decimal, ROUND_DOWN
 from eth_abi.abi import decode
 from sqlalchemy import text
-from asyncio import Lock
+from typing import List
 import asyncio
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
@@ -18,12 +17,10 @@ from .....schemas.opponents import OpponentCreate, QuickOppRead
 from .....schemas.games import GameCreate, GameIdRead, GameStatusUpdate
 from .....schemas.users import (
     UserRead,
-    UpdateUserBalance,
-    UserBalanceRead
+    UserBalanceRead,
+    QuickUpdateUserBalance
 )
 from .....schemas.predictions import (
-    PredictionCreate,
-    OppPredUpdate,
     QuickPredRead,
     PredInitialUpdate,
     PredSettledUpdate,
@@ -39,6 +36,15 @@ logger = logging.getLogger(__name__)
 
 prediction_locks = {}
 opponent_locks = {}
+
+
+
+async def get_all_user_emails(db) -> List[str]:
+    """Fetch all user email addresses from the database."""
+    users = await crud_users.get_multi(
+
+    )
+    return [user.email for user in users]
 
 
 # ------usdtv1 handlers-----------------------
@@ -67,7 +73,7 @@ async def register_games(payload, db):
 
             mail = MailboxManager()
             message = on_game_register(_id)
-            await mail.add_data_to_list("mosesmuwawu@gmail.com", GAME_REGISTERED, "New Game Registered", message)
+            await mail.add_data_to_list(["mosesmuwawu@gmail.com", "andersonixon12@gmail.com", "dearjovic@gmail.com"], GAME_REGISTERED, "New Game Registered", message)
         else:
             logger.info(f"Game {_id} already registered!")
     except Exception as e:
@@ -387,13 +393,12 @@ async def process_usdtv1_bet_sell_initiated(payload, db):
         amount: int = decode(['uint256'], payload['topics'][3])[0]
 
         _contract_address = _address.lower()
+        _id = generate_unique_id(bet_id, gameid, _contract_address)
 
         pred: QuickPredRead | None = await crud_predictions.get(
-        db=db,
-        schema_to_select=QuickPredRead,
-        index=bet_id,
-        match_id=gameid,
-        contract_address=_contract_address
+            db=db,
+            schema_to_select=QuickPredRead,
+            hash_identifier=_id
         )
 
         if pred is None:
@@ -427,13 +432,12 @@ async def process_usdtv1_selling_price_changed(payload, db):
         new_amount: int = decode(['uint256'], payload['topics'][3])[0]
 
         _contract_address = _address.lower()
+        _id = generate_unique_id(bet_id, gameid, _contract_address)
 
         pred: QuickPredRead | None = await crud_predictions.get(
-        db=db,
-        schema_to_select=QuickPredRead,
-        index=bet_id,
-        match_id=gameid,
-        contract_address=_contract_address
+            db=db,
+            schema_to_select=QuickPredRead,
+            hash_identifier=_id
         )
 
         if pred is None:
@@ -466,13 +470,12 @@ async def process_usdtv1_bet_sold(payload, db):
         buyer: str = decode(['address'], payload['topics'][3])[0]
         public_address = buyer.lower()
         _contract_address = _address.lower()
+        _id = generate_unique_id(bet_id, gameid, _contract_address)
 
         pred: QuickPredRead | None = await crud_predictions.get(
-        db=db,
-        schema_to_select=QuickPredRead,
-        index=bet_id,
-        match_id=gameid,
-        contract_address=_contract_address
+            db=db,
+            schema_to_select=QuickPredRead,
+            hash_identifier=_id
         )
 
         if pred is None:
@@ -503,13 +506,12 @@ async def process_usdtv1_settled_pred(payload, db):
         gameid: int = decode(['uint256'], payload['topics'][2])[0]
 
         _contract_address = _address.lower()
+        _id = generate_unique_id(bet_id, gameid, _contract_address)
 
         pred: QuickPredRead | None = await crud_predictions.get(
-        db=db,
-        schema_to_select=QuickPredRead,
-        index=bet_id,
-        match_id=gameid,
-        contract_address=_contract_address
+            db=db,
+            schema_to_select=QuickPredRead,
+            hash_identifier=_id
         )
 
         if pred is None:
@@ -520,10 +522,41 @@ async def process_usdtv1_settled_pred(payload, db):
             PredSettledUpdate(
                 settled=True
             ),
-            index=bet_id,
-            match_id=gameid,
-            contract_address=_contract_address
+            hash_identifier=_id
         )
         logger.info("Prediction Updated successfully.")
     except Exception as e:
         logger.error(f"Error Processing 'PredictionSettled' event: {e}")
+
+async def process_usdtv1_settled_pred_balance_read(payload, db):
+    """
+    Handler for `UserBalance` event.
+
+    Updates user balance when a bet is settled.
+    """
+    try:
+        user_address: str = decode(['address'], payload['topics'][1])[0]
+        amount: int = decode(['uint256'], payload['topics'][2])[0]
+
+        public_address = user_address.lower()
+
+        user: UserRead | None = await crud_users.get(
+            db=db,
+            schema_to_select=UserRead,
+            public_address=public_address
+        )
+
+        if user is None:
+            raise Exception(f"User {public_address} Not found!")
+        
+        converted_amount = usdt_to_decimal(amount)
+        await crud_users.update(
+            db,
+            QuickUpdateUserBalance(
+                balance=converted_amount
+            ),
+            public_address=public_address
+        )
+        logger.info("User Balance Updated successfully.")
+    except Exception as e:
+        logger.error(f"Error Processing 'UserBalance' event: {e}")

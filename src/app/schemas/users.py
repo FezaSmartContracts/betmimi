@@ -62,3 +62,11 @@ class UserBalanceRead(SQLModel):
 
 class QuickBalanceRead(SQLModel):
     balance: int
+
+class QuickUpdateUserBalance(SQLModel):
+    balance: int
+
+class QuickAdminRead(SQLModel):
+    public_address: str
+    is_admin: bool
+    email: str

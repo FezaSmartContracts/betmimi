@@ -1,9 +1,5 @@
-from typing import Dict, Annotated
-from decimal import Decimal, ROUND_DOWN
+from typing import Dict
 from hexbytes import HexBytes
-from eth_abi.abi import decode
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends
 
 from ..utils import load_abi, get_event_topic
 from ...logger import logging
@@ -27,7 +23,11 @@ def usdtv1_event_topics_dict() -> Dict[str, HexBytes]:
             "BetSold": get_event_topic(ABI, "BetSold"),
             "BetSellInitiated": get_event_topic(ABI, "BetSellInitiated"),
             "SellingPriceChanged": get_event_topic(ABI, "SellingPriceChanged"),
-            "GameResolved": get_event_topic(ABI, "GameResolved")
+            "GameResolved": get_event_topic(ABI, "GameResolved"),
+            "UserBalance": get_event_topic(ABI, "UserBalance"),
+            "ReceivedFallback": get_event_topic(ABI, "ReceivedFallback"),
+            "EtherWithdrawn": get_event_topic(ABI, "EtherWithdrawn"),
+            "RevenueWithdrawn": get_event_topic(ABI, "RevenueWithdrawn")
         }
     except Exception as e:
         logger.error(f"Failed to construct event topics dictionary: {e}")

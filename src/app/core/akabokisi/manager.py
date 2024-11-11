@@ -10,11 +10,12 @@ from app.core.config import settings
 from .topics import event_queue_dict
 from ..constants import USER_NAME
 from .messages import support_link
+from .helper import current_year
 
 logger = logging.getLogger(__name__)
 
-# Set up Jinja2 environment for email templates
 template_dir = os.path.join(os.path.dirname(__file__), "templates")
+
 env = Environment(
     loader=FileSystemLoader(template_dir),
     autoescape=select_autoescape(["html", "xml"])
@@ -24,22 +25,23 @@ class MailboxManager:
     def __init__(self):
         self.redis = Redis(host=settings.REDIS_QUEUE_HOST, port=settings.REDIS_QUEUE_PORT, db=0)
 
-    async def add_data_to_list(self, address: str, relevant_queue_name: str, subject: str, body: str) -> None:
-        """Adds specific email data to Redis queue"""
-        _data = {"address": address, "subject": subject, "body": body}
-        data = pickle.dumps(_data)
+    async def add_data_to_list(self, addresses: List[str], relevant_queue_name: str, subject: str, body: str) -> None:
+        """Adds email data for multiple addresses to Redis queue."""
         try:
-            await self.redis.rpush(relevant_queue_name, data)
-            logger.info(f"Email {address} added to Queue")
+            for address in addresses:
+                _data = {"address": address, "subject": subject, "body": body}
+                data = pickle.dumps(_data)
+                await self.redis.rpush(relevant_queue_name, data)
+                logger.info(f"Email {address} added to Queue")
         except Exception as e:
-            logger.error(f"Failed to add email to queue due to: {e}")
+            logger.error(f"Failed to add emails to queue due to: {e}")
     
     async def process_emails(self) -> None:
         try:
             event_queues = event_queue_dict()
             for queue_name in event_queues.values():
                 data = await self.redis.lrange(queue_name, 0, -1)
-                await self.redis.ltrim(queue_name, 1, 0)  # Clear the queue
+                await self.redis.ltrim(queue_name, 1, 0)  # Clear the queue after fetching
 
                 # Batch emails by subject and body
                 batch = self._group_emails_by_content(data)
@@ -75,10 +77,10 @@ class MailboxManager:
         try:
             template = env.get_template("email_template.html")
             html_content = template.render(
-                subject=subject,
                 body_message=body,
                 recipient_name=USER_NAME,
-                support_link=support_link()
+                support_link=support_link(),
+                current_year=current_year()
             )
 
             to_emails = [To(email) for email in emails]

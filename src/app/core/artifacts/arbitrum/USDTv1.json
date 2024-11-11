@@ -228,6 +228,23 @@
     },
     {
         "type": "event",
+        "name": "UserBalance",
+        "inputs": [
+            {
+                "name": "_address",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
         "name": "AdminAdded",
         "inputs": [
             {
