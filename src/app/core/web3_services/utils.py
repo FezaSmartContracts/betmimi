@@ -70,7 +70,7 @@ def get_event_topic(abi: List[Dict[str, Any]], event_name: str) -> HexBytes:
 
 def arbitrum_contract_addresses():
     address_relative_path = "../artifacts/arbitrum/deployments.json"
-    _keys = ["WinOrLoss", "Zero", "One", "Two", "Three"]
+    _keys = ["WinOrLoss", "Zero", "One", "Two", "Three", "Games", "Usdt"] # more keys can be added
     arbitrum_address = []
 
     for _key in _keys:

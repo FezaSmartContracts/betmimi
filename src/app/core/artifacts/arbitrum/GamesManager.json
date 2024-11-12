@@ -1,0 +1,363 @@
+[
+    {
+        "type": "event",
+        "name": "GameRegistered",
+        "inputs": [
+            {
+                "name": "game_id",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "GameResolved",
+        "inputs": [
+            {
+                "name": "game_id",
+                "type": "uint256",
+                "indexed": true
+            },
+            {
+                "name": "result",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "ReceivedFallback",
+        "inputs": [
+            {
+                "name": "sender",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "EtherWithdrawn",
+        "inputs": [
+            {
+                "name": "_by",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "AdminAdded",
+        "inputs": [
+            {
+                "name": "admin",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "AdminRemoved",
+        "inputs": [
+            {
+                "name": "admin",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "OwnershipTransferInitiated",
+        "inputs": [
+            {
+                "name": "current_owner",
+                "type": "address",
+                "indexed": false
+            },
+            {
+                "name": "future_owner",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "OwnershipTransferCompleted",
+        "inputs": [
+            {
+                "name": "previous_owner",
+                "type": "address",
+                "indexed": false
+            },
+            {
+                "name": "new_owner",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "function",
+        "name": "set_admin",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "new_admin",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "remove_admin",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "admin_address",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "initiate_transfer_ownership",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "new_owner",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "accept_ownership",
+        "stateMutability": "nonpayable",
+        "inputs": [],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "whitelist_contract",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "contract_address",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "remove_contract_from_whitelist",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "contract_address",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "set_fee",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_fee_percent",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "admin",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "whitelisted",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "owner",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "pending_owner",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "fee_percent",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "register_game",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "timestamp",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "test_resolve",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "match_id",
+                "type": "uint256"
+            },
+            {
+                "name": "_result",
+                "type": "uint256"
+            },
+            {
+                "name": "_status",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "fallback",
+        "stateMutability": "payable"
+    },
+    {
+        "type": "function",
+        "name": "ether_withdraw",
+        "stateMutability": "nonpayable",
+        "inputs": [],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "games",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "uint256"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "tuple",
+                "components": [
+                    {
+                        "name": "match_id",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "resolved",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "result",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "status",
+                        "type": "uint256"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "constructor",
+        "stateMutability": "nonpayable",
+        "inputs": []
+    }
+]

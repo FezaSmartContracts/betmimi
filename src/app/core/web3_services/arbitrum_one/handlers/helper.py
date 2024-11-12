@@ -53,6 +53,7 @@ async def get_admin_emails(db) -> List[str]:
                 emails_list.append(item['email'])
             else:
                 continue
+        return emails_list
     except Exception as e:
-        logger.error("Failed to fetch admin details")
+        logger.error(f"Failed to fetch admin details: {e}")
 

@@ -1,7 +1,7 @@
 from eth_abi.abi import decode
 
 from .....core.logger import logging
-from .helper import generate_unique_id, usdt_to_decimal, validate_block_number
+from .helper import usdt_to_decimal, get_admin_emails
 from ....akabokisi.manager import MailboxManager
 from ....constants import (
     revenue_alert,
@@ -14,7 +14,6 @@ from ....constants import (
     ownership_transfer_completed_alert
 )
 from ....akabokisi.messages import (
-    on_game_register,
     on_revenue_withdrawal,
     on_admin_added,
     on_admin_removed,
@@ -71,15 +70,9 @@ async def revenue_withdrawn(payload, db):
         
         if users is None:
             raise Exception(f"Unable to fetch Admnistrators!")
-        
-        emails_list = []
-        for item in users['data']:
-            if item['email'] != None:
-                emails_list.append(item['email'])
-            else:
-                continue
 
         mail = MailboxManager()
+        emails_list = await get_admin_emails(db)
         message = on_revenue_withdrawal(amount, public_address, mail_address)
         subject = revenue_alert()[0]
         queue_name = revenue_alert()[1]
@@ -112,15 +105,9 @@ async def admin_added(payload, db):
         
         if users is None:
             raise Exception(f"Unable to fetch Admnistrators!")
-        
-        emails_list = []
-        for item in users['data']:
-            if item['email'] != None:
-                emails_list.append(item['email'])
-            else:
-                continue
 
         mail = MailboxManager()
+        emails_list = await get_admin_emails(db)
         message = on_admin_added(_user, _address)
         subject = admin_added_alert()[0]
         queue_name = admin_added_alert()[1]
@@ -153,15 +140,9 @@ async def admin_removed(payload, db):
         
         if users is None:
             raise Exception(f"Unable to fetch Admnistrators!")
-        
-        emails_list = []
-        for item in users['data']:
-            if item['email'] != None:
-                emails_list.append(item['email'])
-            else:
-                continue
 
         mail = MailboxManager()
+        emails_list = await get_admin_emails(db)
         message = on_admin_removed(_user, _address)
         subject = admin_removed_alert()[0]
         queue_name = admin_removed_alert()[1]
@@ -194,15 +175,9 @@ async def fees_updated(payload, db):
         
         if users is None:
             raise Exception(f"Unable to fetch Admnistrators!")
-        
-        emails_list = []
-        for item in users['data']:
-            if item['email'] != None:
-                emails_list.append(item['email'])
-            else:
-                continue
 
         mail = MailboxManager()
+        emails_list = await get_admin_emails(db)
         message = on_fee_change(_fee, _address)
         subject = charge_fees_changed_alert()[0]
         queue_name = charge_fees_changed_alert()[1]
@@ -236,15 +211,9 @@ async def updated_whitelist(payload, db):
         
         if users is None:
             raise Exception(f"Unable to fetch Admnistrators!")
-        
-        emails_list = []
-        for item in users['data']:
-            if item['email'] != None:
-                emails_list.append(item['email'])
-            else:
-                continue
 
         mail = MailboxManager()
+        emails_list = await get_admin_emails(db)
         message = on_whitlist(contract_address, _address, by)
         subject = address_added_to_whiteliist_alert()[0]
         queue_name = address_added_to_whiteliist_alert()[1]
@@ -278,15 +247,9 @@ async def updated_blacklist(payload, db):
         
         if users is None:
             raise Exception(f"Unable to fetch Admnistrators!")
-        
-        emails_list = []
-        for item in users['data']:
-            if item['email'] != None:
-                emails_list.append(item['email'])
-            else:
-                continue
 
         mail = MailboxManager()
+        emails_list = await get_admin_emails(db)
         message = on_blacklist(contract_address, _address, by)
         subject = address_removed_from_whiteliist_alert()[0]
         queue_name = address_removed_from_whiteliist_alert()[1]
@@ -320,15 +283,9 @@ async def updated_blacklist(payload, db):
         
         if users is None:
             raise Exception(f"Unable to fetch Admnistrators!")
-        
-        emails_list = []
-        for item in users['data']:
-            if item['email'] != None:
-                emails_list.append(item['email'])
-            else:
-                continue
 
         mail = MailboxManager()
+        emails_list = await get_admin_emails(db)
         message = on_ownership_transfer_initiation(current_owner, future_owner, _address)
         subject = ownership_transfer_initiation_alert()[0]
         queue_name = ownership_transfer_initiation_alert()[1]
@@ -362,15 +319,9 @@ async def updated_blacklist(payload, db):
         
         if users is None:
             raise Exception(f"Unable to fetch Admnistrators!")
-        
-        emails_list = []
-        for item in users['data']:
-            if item['email'] != None:
-                emails_list.append(item['email'])
-            else:
-                continue
 
         mail = MailboxManager()
+        emails_list = await get_admin_emails(db)
         message = on_ownership_transfer_completion(new_owner, previous_owner, _address)
         subject = ownership_transfer_completed_alert()[0]
         queue_name = ownership_transfer_completed_alert()[1]
@@ -384,4 +335,3 @@ async def updated_blacklist(payload, db):
         
     except Exception as e:
         logger.error(f"Error processing 'OwnershipTransferCompleted' event: {e}")
-

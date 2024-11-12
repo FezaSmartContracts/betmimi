@@ -1,35 +1,6 @@
 [
     {
         "type": "event",
-        "name": "GameRegistered",
-        "inputs": [
-            {
-                "name": "game_id",
-                "type": "uint256",
-                "indexed": true
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
-        "name": "GameResolved",
-        "inputs": [
-            {
-                "name": "game_id",
-                "type": "uint256",
-                "indexed": true
-            },
-            {
-                "name": "result",
-                "type": "uint256",
-                "indexed": true
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
         "name": "Predicted",
         "inputs": [
             {
@@ -88,23 +59,6 @@
                 "name": "result",
                 "type": "uint256",
                 "indexed": false
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
-        "name": "Claimed",
-        "inputs": [
-            {
-                "name": "user",
-                "type": "address",
-                "indexed": true
-            },
-            {
-                "name": "amount",
-                "type": "uint256",
-                "indexed": true
             }
         ],
         "anonymous": false
@@ -211,10 +165,10 @@
     },
     {
         "type": "event",
-        "name": "Deposited",
+        "name": "UserBalance",
         "inputs": [
             {
-                "name": "_from",
+                "name": "_address",
                 "type": "address",
                 "indexed": true
             },
@@ -228,10 +182,10 @@
     },
     {
         "type": "event",
-        "name": "UserBalance",
+        "name": "EtherWithdrawn",
         "inputs": [
             {
-                "name": "_address",
+                "name": "_by",
                 "type": "address",
                 "indexed": true
             },
@@ -346,6 +300,30 @@
     },
     {
         "type": "function",
+        "name": "whitelist_contract",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "contract_address",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "remove_contract_from_whitelist",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "contract_address",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
         "name": "set_fee",
         "stateMutability": "nonpayable",
         "inputs": [
@@ -359,6 +337,23 @@
     {
         "type": "function",
         "name": "admin",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "whitelisted",
         "stateMutability": "view",
         "inputs": [
             {
@@ -411,18 +406,6 @@
     },
     {
         "type": "function",
-        "name": "deposit",
-        "stateMutability": "nonpayable",
-        "inputs": [
-            {
-                "name": "_amount",
-                "type": "uint256"
-            }
-        ],
-        "outputs": []
-    },
-    {
-        "type": "function",
         "name": "lay",
         "stateMutability": "nonpayable",
         "inputs": [
@@ -460,22 +443,6 @@
             },
             {
                 "name": "_result",
-                "type": "uint256"
-            }
-        ],
-        "outputs": []
-    },
-    {
-        "type": "function",
-        "name": "register_game",
-        "stateMutability": "nonpayable",
-        "inputs": [
-            {
-                "name": "match_id",
-                "type": "uint256"
-            },
-            {
-                "name": "timestamp",
                 "type": "uint256"
             }
         ],
@@ -552,18 +519,6 @@
             },
             {
                 "name": "_counter",
-                "type": "uint256"
-            }
-        ],
-        "outputs": []
-    },
-    {
-        "type": "function",
-        "name": "withdraw",
-        "stateMutability": "nonpayable",
-        "inputs": [
-            {
-                "name": "_amount",
                 "type": "uint256"
             }
         ],
@@ -659,103 +614,15 @@
         ]
     },
     {
-        "type": "function",
-        "name": "getContractBalance",
-        "stateMutability": "nonpayable",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256"
-            }
-        ]
-    },
-    {
-        "type": "function",
-        "name": "get_revenue",
-        "stateMutability": "nonpayable",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256"
-            }
-        ]
-    },
-    {
         "type": "fallback",
         "stateMutability": "payable"
     },
     {
         "type": "function",
-        "name": "test_resolve",
+        "name": "ether_withdraw",
         "stateMutability": "nonpayable",
-        "inputs": [
-            {
-                "name": "match_id",
-                "type": "uint256"
-            },
-            {
-                "name": "_result",
-                "type": "uint256"
-            },
-            {
-                "name": "_status",
-                "type": "uint256"
-            }
-        ],
-        "outputs": []
-    },
-    {
-        "type": "function",
-        "name": "games",
-        "stateMutability": "view",
-        "inputs": [
-            {
-                "name": "arg0",
-                "type": "uint256"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "",
-                "type": "tuple",
-                "components": [
-                    {
-                        "name": "match_id",
-                        "type": "uint256"
-                    },
-                    {
-                        "name": "timestamp",
-                        "type": "uint256"
-                    },
-                    {
-                        "name": "resolved",
-                        "type": "bool"
-                    },
-                    {
-                        "name": "result",
-                        "type": "uint256"
-                    },
-                    {
-                        "name": "status",
-                        "type": "uint256"
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        "type": "function",
-        "name": "token",
-        "stateMutability": "view",
         "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "address"
-            }
-        ]
+        "outputs": []
     },
     {
         "type": "function",
@@ -848,23 +715,6 @@
     },
     {
         "type": "function",
-        "name": "balance_of",
-        "stateMutability": "view",
-        "inputs": [
-            {
-                "name": "arg0",
-                "type": "address"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256"
-            }
-        ]
-    },
-    {
-        "type": "function",
         "name": "counter",
         "stateMutability": "view",
         "inputs": [
@@ -885,7 +735,11 @@
         "stateMutability": "nonpayable",
         "inputs": [
             {
-                "name": "_address",
+                "name": "balance_address",
+                "type": "address"
+            },
+            {
+                "name": "games_address",
                 "type": "address"
             }
         ]

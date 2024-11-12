@@ -1,0 +1,448 @@
+[
+    {
+        "type": "event",
+        "name": "Deposited",
+        "inputs": [
+            {
+                "name": "_from",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "Claimed",
+        "inputs": [
+            {
+                "name": "user",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "RevenueWithdrawn",
+        "inputs": [
+            {
+                "name": "_address",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "EtherWithdrawn",
+        "inputs": [
+            {
+                "name": "_by",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "ReceivedFallback",
+        "inputs": [
+            {
+                "name": "sender",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "AdminAdded",
+        "inputs": [
+            {
+                "name": "admin",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "AdminRemoved",
+        "inputs": [
+            {
+                "name": "admin",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "OwnershipTransferInitiated",
+        "inputs": [
+            {
+                "name": "current_owner",
+                "type": "address",
+                "indexed": false
+            },
+            {
+                "name": "future_owner",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "OwnershipTransferCompleted",
+        "inputs": [
+            {
+                "name": "previous_owner",
+                "type": "address",
+                "indexed": false
+            },
+            {
+                "name": "new_owner",
+                "type": "address",
+                "indexed": false
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "function",
+        "name": "set_admin",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "new_admin",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "remove_admin",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "admin_address",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "initiate_transfer_ownership",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "new_owner",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "accept_ownership",
+        "stateMutability": "nonpayable",
+        "inputs": [],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "whitelist_contract",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "contract_address",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "remove_contract_from_whitelist",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "contract_address",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "set_fee",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_fee_percent",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "admin",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "whitelisted",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "owner",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "pending_owner",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "fee_percent",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "deposit",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "withdraw",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "decrease_balance",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_addr",
+                "type": "address"
+            },
+            {
+                "name": "wager",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "increase_balance",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_addr",
+                "type": "address"
+            },
+            {
+                "name": "wager",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "update_revenue",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "getContractBalance",
+        "stateMutability": "nonpayable",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "get_revenue",
+        "stateMutability": "nonpayable",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "withdraw_revenue",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "type": "fallback",
+        "stateMutability": "payable"
+    },
+    {
+        "type": "function",
+        "name": "ether_withdraw",
+        "stateMutability": "nonpayable",
+        "inputs": [],
+        "outputs": []
+    },
+    {
+        "type": "function",
+        "name": "balance_of",
+        "stateMutability": "view",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "token",
+        "stateMutability": "view",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ]
+    },
+    {
+        "type": "constructor",
+        "stateMutability": "nonpayable",
+        "inputs": [
+            {
+                "name": "_address",
+                "type": "address"
+            }
+        ]
+    }
+]

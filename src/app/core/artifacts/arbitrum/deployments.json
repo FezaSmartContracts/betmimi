@@ -2,7 +2,7 @@
 {
     "WinOrLoss": {
       "contract_name": "USDTv1",
-      "contract_address": "0x4434B68f6790C202606483C56d815F9cD3bD6473"
+      "contract_address": "0xE236FB05214747B3491F5f6d7AcE4574026995f8"
     },
     "Zero": {
       "contract_name": "ZUSDTv1",
@@ -19,5 +19,13 @@
     "Three": {
       "contract_name": "HUSDTv1",
       "contract_address": "0x1a8935586EEDD19aE07d14B21D58d3F9BE192562"
+    },
+    "Games": {
+      "contract_name": "GamesManager",
+      "contract_address": "0xFDCA5d193FD1de0ff37f59591DBcD13A5a421322"
+    },
+    "Usdt": {
+      "contract_name": "UsdtManager",
+      "contract_address": "0xFD6827d6562FdF9797f09946b37F433146D26Ad2"
     }
 }
