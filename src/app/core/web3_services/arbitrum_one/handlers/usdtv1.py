@@ -18,7 +18,8 @@ from .....schemas.games import GameCreate, GameIdRead, GameStatusUpdate
 from .....schemas.users import (
     UserRead,
     UserBalanceRead,
-    QuickUpdateUserBalance
+    QuickUpdateUserBalance,
+    QuickAdminRead
 )
 from .....schemas.predictions import (
     QuickPredRead,
@@ -27,24 +28,12 @@ from .....schemas.predictions import (
     PredSoldUpdate,
     PredPriceUpdate
 )
-from .helper import generate_unique_id, usdt_to_decimal, validate_block_number
+from .helper import generate_unique_id, usdt_to_decimal, validate_block_number, get_admin_emails
 from ....akabokisi.manager import MailboxManager
-from ....constants import GAME_REGISTERED, PREDICTION_LAYED
+from ....constants import game_registered_notify
 from ....akabokisi.messages import on_game_register, on_lay
 
 logger = logging.getLogger(__name__)
-
-prediction_locks = {}
-opponent_locks = {}
-
-
-
-async def get_all_user_emails(db) -> List[str]:
-    """Fetch all user email addresses from the database."""
-    users = await crud_users.get_multi(
-
-    )
-    return [user.email for user in users]
 
 
 # ------usdtv1 handlers-----------------------
@@ -72,8 +61,16 @@ async def register_games(payload, db):
             logger.info(f"New game registered: ID={_id}")
 
             mail = MailboxManager()
+            subject = game_registered_notify()[0]
+            queue_name = game_registered_notify()[1]
+            addresses = await get_admin_emails(db)
             message = on_game_register(_id)
-            await mail.add_data_to_list(["mosesmuwawu@gmail.com", "andersonixon12@gmail.com", "dearjovic@gmail.com"], GAME_REGISTERED, "New Game Registered", message)
+            await mail.add_data_to_list(
+                addresses,
+                queue_name,
+                subject,
+                message
+            )
         else:
             logger.info(f"Game {_id} already registered!")
     except Exception as e:
@@ -282,10 +279,6 @@ async def process_usdtv1_lays(payload, db):
             logger.warning(f"Duplicate detected and ignored for {_key}")
         else:
             logger.info(f"Processed Lay: {_key}")
-
-        mail = MailboxManager()
-        message = on_lay(converted_amount)
-        await mail.add_data_to_list("mosikoproducts@gmail.com", PREDICTION_LAYED, "Prediction Layed", message)
     
     except IntegrityError:
         logger.error(f"Duplicate prediction detected for Index={bet_id} and Game ID={gameid}")

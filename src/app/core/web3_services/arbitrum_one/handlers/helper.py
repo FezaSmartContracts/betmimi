@@ -1,13 +1,9 @@
-import asyncio
 import hashlib
 from typing import List
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy.exc import NoResultFound
-from sqlalchemy import text
 from decimal import Decimal, ROUND_DOWN
 
-from .....models.user import Prediction
+from .....schemas.users import QuickAdminRead 
+from .....crud.crud_users import crud_users
 from .....core.logger import logging
 
 logger = logging.getLogger(__name__)
@@ -39,4 +35,24 @@ def validate_block_number(prev_block_number: int, latest_block_number: int, bloc
             return [_prev, _latest]
     else:
         raise Exception(f"Deposit at {block_number} is already registered!")
+    
+async def get_admin_emails(db) -> List[str]:
+    try:
+        users: QuickAdminRead | None = await crud_users.get_multi(
+            db=db,
+            schema_to_select=QuickAdminRead,
+            is_admin=True
+        )
+        
+        if users is None:
+            raise Exception(f"Unable to fetch Admnistrators!")
+        
+        emails_list = []
+        for item in users['data']:
+            if item['email'] != None:
+                emails_list.append(item['email'])
+            else:
+                continue
+    except Exception as e:
+        logger.error("Failed to fetch admin details")
 

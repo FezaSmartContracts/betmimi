@@ -1,14 +1,15 @@
 from typing import Dict, List
 
 from ..logger import logging
-from ..constants import GAME_REGISTERED, PREDICTION_LAYED
+from ..constants import (
+    game_registered_notify,
+)
 
 logger = logging.getLogger(__name__)
 
 
 events_dict: Dict[str, str] = {
-    "game_registered_event": GAME_REGISTERED,
-    "lay_event": PREDICTION_LAYED
+    "game_registered_event": game_registered_notify()[1]
 }
 
 def event_queue_dict() -> Dict[str, str]:
