@@ -9,6 +9,7 @@ from ...core.db.database import async_get_db
 from ...core.exceptions.http_exceptions import NotFoundException
 from ...crud.crud_users import crud_users
 from ...schemas.users import AdminUpdate, UserRead
+from ...core.web3_services.get_functions.usdt.functions import get_count_for_usdt_contracts
 
 router = APIRouter(tags=["administration"])
 
@@ -74,3 +75,23 @@ async def update_admin(
         public_address=address
     )
     return {"message": f"Admin Status for {address} updated to {values.is_admin}"}
+
+
+@router.get("/counter")
+async def read_number(
+    request: Request,
+):
+    """
+    - Retrieve a paginated list of rate admins.
+    - This endpoint allows users to retrieve admins in a paginated format.
+    - Args:
+        - `request (Request):` The request object.
+        - `db (AsyncSession):` The database session.
+        - `page (int):` The page number to retrieve.
+        - `items_per_page (int):` The number of items per page.
+    - Returns:
+        - `dict:` A dictionary containing the paginated list of admins.
+    """
+    counter = await get_count_for_usdt_contracts(1237)
+    return counter
+

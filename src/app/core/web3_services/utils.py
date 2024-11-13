@@ -36,7 +36,7 @@ def load_contract_address(key: str, relative_path: str) -> str:
 
     In the calling file, Pass the relative path to the ABI file based on the module's location
 
-    Forexample: abi = `load_abi("../artifacts/arbitrum/deployments.json")`
+    Forexample: abi = `load_contract_address("WinOrLoss", "../artifacts/arbitrum/deployments.json")`
     >>>
     """
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -82,3 +82,22 @@ def generate_unique_id(bet_id: int, match_id: int, contract_address: str) -> str
     unique_string = f"{bet_id}_{match_id}_{contract_address}"
     unique_hash = hashlib.sha256(unique_string.encode()).hexdigest()
     return unique_hash
+
+
+def arbitrum_contract_addresses_and_names() -> List[tuple[str, str]]:
+    """Returns a list of (name, address) tuples"""
+
+    relative_path = "../artifacts/arbitrum/deployments.json"
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, relative_path)
+    with open(file_path, 'r') as f:
+        file =  json.load(f)
+
+    _keys = ["WinOrLoss", "Zero", "One", "Two", "Three"]
+    
+    arbitrum_address = [
+        (file[key]["contract_name"], file[key]["contract_address"])
+        for key in _keys if key in file
+    ]
+    
+    return arbitrum_address
