@@ -13,6 +13,16 @@ from .handlers.usdtv1 import (
     game_resolved,
     process_usdtv1_settled_pred_balance_read
 )
+from .handlers.alerts import (
+    revenue_withdrawn,
+    admin_added,
+    admin_removed,
+    fees_updated,
+    updated_whitelist,
+    updated_blacklist,
+    transfer_ownership_initiated,
+    transfer_ownership_completed
+)
 
 
 def usdtv1_event_handlers() -> Dict[str, callable]:
@@ -28,5 +38,13 @@ def usdtv1_event_handlers() -> Dict[str, callable]:
         "PredictionSettled": process_usdtv1_settled_pred,
         "GameRegistered": register_games,
         "GameResolved": game_resolved,
-        "UserBalance": process_usdtv1_settled_pred_balance_read
+        "UserBalance": process_usdtv1_settled_pred_balance_read,
+        "RevenueWithdrawn": revenue_withdrawn,
+        "AdminAdded": admin_added,
+        "AdminRemoved": admin_removed,
+        "FeeChanged": fees_updated,
+        "AddedToWhitelist": updated_whitelist,
+        "RemovedFromWhitelist": updated_blacklist,
+        "OwnershipTransferInitiated": transfer_ownership_initiated,
+        "OwnershipTransferCompleted": transfer_ownership_completed
     }

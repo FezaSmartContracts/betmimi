@@ -22,7 +22,16 @@ async def sample_background_task(ctx: Worker, name: str) -> str:
     await asyncio.sleep(5)
     return f"Task {name} is complete!"
 
-async def send_email(ctx: Worker, name: str) -> str:
+async def send_email(ctx: Worker) -> str:
+    mail = MailboxManager()
+    try:
+        await mail.process_emails()
+        logger.info(f"Emails Sent!")
+    except Exception as e:
+        logger.error(f"Email sending failed due to: {e}")
+    logger.info("Task completed its run.")
+
+async def send_email_manually(ctx: Worker, name: str) -> str:
     mail = MailboxManager()
     try:
         await mail.process_emails()
@@ -48,7 +57,13 @@ async def process_data(ctx):
             logger.error(f"Cancelled: {e}")
         except Exception as e:
             logger.error(f"Unknown Error: {e}")
-        logger.info(f"Task completed its 10-minute(s) run.")
+        finally:
+            # Ensure any necessary database cleanup here
+            await db.close()
+            logger.info("Database connection released.")
+
+        logger.info("Task completed its run.")
+
 
 async def call_usdtv1_arb_alchemy_fallback(
         ctx: Worker,

@@ -8,13 +8,16 @@ from sqlalchemy.future import select
 from sqlalchemy.dialects.postgresql import insert
 
 from .....core.logger import logging
-from .....models.user import Prediction
+from .....models.user import Prediction, Opponent
 from .....crud.crud_predictions import crud_predictions
 from .....crud.crud_users import crud_users
 from .....crud.crud_opponent import crud_opponent
 from .....crud.crud_matches import crud_matches
-from .....schemas.opponents import OpponentCreate, QuickOppRead
+from .....schemas.opponents import OpponentCreate, QuickOppRead, OnsettledOppRead
 from .....schemas.games import GameCreate, GameIdRead, GameStatusUpdate
+from ....akabokisi.manager import MailboxManager
+from ....constants import game_registered_notify, pred_settled_notify
+from ....akabokisi.messages import on_game_register, on_pred_settlement
 from .....schemas.users import (
     UserRead,
     UserBalanceRead,
@@ -26,12 +29,19 @@ from .....schemas.predictions import (
     PredInitialUpdate,
     PredSettledUpdate,
     PredSoldUpdate,
-    PredPriceUpdate
+    PredPriceUpdate,
+    OnSettledPredRead
 )
-from .helper import generate_unique_id, usdt_to_decimal, validate_block_number, get_admin_emails
-from ....akabokisi.manager import MailboxManager
-from ....constants import game_registered_notify
-from ....akabokisi.messages import on_game_register, on_lay
+
+from .helper import (
+    generate_unique_id,
+    usdt_to_decimal,
+    validate_block_number,
+    get_admin_emails,
+    load_settled_prediction_data,
+    fetch_addresses
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +73,7 @@ async def register_games(payload, db):
             mail = MailboxManager()
             subject = game_registered_notify()[0]
             queue_name = game_registered_notify()[1]
-            addresses = await get_admin_emails(db)
+            addresses = await get_admin_emails(db, schema=QuickAdminRead)
             message = on_game_register(_id)
             await mail.add_data_to_list(
                 addresses,
@@ -518,6 +528,26 @@ async def process_usdtv1_settled_pred(payload, db):
             hash_identifier=_id
         )
         logger.info("Prediction Updated successfully.")
+
+        mail = MailboxManager()
+        pred_data = await load_settled_prediction_data(
+            db=db,
+            pred_schema_to_select=OnSettledPredRead,
+            opponent_model=Opponent,
+            pred_model=Prediction,
+            opp_schema_to_select=OnsettledOppRead,
+            _hash_id=_id
+        )
+        addresses_list = fetch_addresses(pred_data)
+        subject = pred_settled_notify()[0]
+        queue_name = pred_settled_notify()[1]
+        message = on_pred_settlement(gameid)
+        await mail.add_data_to_list(
+            addresses_list,
+            queue_name,
+            subject,
+            message
+        )
     except Exception as e:
         logger.error(f"Error Processing 'PredictionSettled' event: {e}")
 

@@ -69,7 +69,7 @@ async def create_email_task(message: str) -> dict[str, str]:
     dict[str, str]
         A dictionary containing the ID of the created task.
     """
-    job = await queue.pool.enqueue_job("send_email", message)  # type: ignore
+    job = await queue.pool.enqueue_job("send_email_manually", message)  # type: ignore
     return {"id": job.job_id}
 
 #------------For testing purposes------------

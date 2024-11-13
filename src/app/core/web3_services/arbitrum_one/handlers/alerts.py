@@ -24,19 +24,8 @@ from ....akabokisi.messages import (
     on_whitlist,
 )
 from .....crud.crud_users import crud_users
-from .....schemas.users import (
-    QuickAdminRead,
-    QuickEmailRead,
-    UserBalanceRead,
-    QuickUpdateUserBalance
-)
-from .....schemas.predictions import (
-    QuickPredRead,
-    PredInitialUpdate,
-    PredSettledUpdate,
-    PredSoldUpdate,
-    PredPriceUpdate
-)
+from .....schemas.users import QuickAdminRead, QuickEmailRead
+
 logger = logging.getLogger(__name__)
 
 async def revenue_withdrawn(payload, db):
@@ -264,7 +253,7 @@ async def updated_blacklist(payload, db):
     except Exception as e:
         logger.error(f"Error processing 'RemovedFromWhitelist' event: {e}")
 
-async def updated_blacklist(payload, db):
+async def transfer_ownership_initiated(payload, db):
     """
     Handler for `OwnershipTransferInitiated` event
 
@@ -300,7 +289,7 @@ async def updated_blacklist(payload, db):
     except Exception as e:
         logger.error(f"Error processing 'OwnershipTransferInitiated' event: {e}")
 
-async def updated_blacklist(payload, db):
+async def transfer_ownership_completed(payload, db):
     """
     Handler for `OwnershipTransferCompleted` event
 

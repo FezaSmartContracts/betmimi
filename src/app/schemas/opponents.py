@@ -35,3 +35,8 @@ class QuickOppRead(SQLModel):
     prediction_index: int
     opponent_address: str
     block_number: int
+
+class OnsettledOppRead(SQLModel):
+    id: int
+    prediction_id: int
+    opponent_address: str

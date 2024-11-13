@@ -1,20 +1,17 @@
-from typing import Annotated, Any, Optional, Dict
-from datetime import datetime, timezone
-from sqlmodel import SQLModel
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Request, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from fastcrud.paginated import PaginatedListResponse, compute_offset, paginated_response
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastcrud import JoinConfig
 
 from ...api.dependencies import get_current_superuser, get_current_user
 from ...core.db.database import async_get_db
-from ...core.exceptions.http_exceptions import DuplicateValueException, NotFoundException
 from ...crud.crud_predictions import crud_predictions
 from ...crud.crud_users import crud_users
 from ...models.user import Opponent, Prediction, User
 
-from ...schemas.users import UserRead, QuickAdminRead
+from ...schemas.users import UserRead
 from ...schemas.predictions import PredictionRead, PredictionAndOpponents
 from ...schemas.opponents import OpponentRead
 from ...schemas.custom import Count
@@ -22,7 +19,6 @@ from app.core.logger import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["predictions"])
-
 
 @router.get("/count-all", response_model=Count)
 async def get_all_active_predictions_count(

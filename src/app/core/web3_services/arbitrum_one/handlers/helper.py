@@ -1,9 +1,10 @@
 import hashlib
-from typing import List
+from typing import List, Dict, Any
 from decimal import Decimal, ROUND_DOWN
+from fastcrud import JoinConfig
 
-from .....schemas.users import QuickAdminRead 
 from .....crud.crud_users import crud_users
+from .....crud.crud_predictions import crud_predictions
 from .....core.logger import logging
 
 logger = logging.getLogger(__name__)
@@ -36,24 +37,82 @@ def validate_block_number(prev_block_number: int, latest_block_number: int, bloc
     else:
         raise Exception(f"Deposit at {block_number} is already registered!")
     
-async def get_admin_emails(db) -> List[str]:
+async def get_admin_emails(db, schema: Any) -> List[str]:
     try:
-        users: QuickAdminRead | None = await crud_users.get_multi(
+        users = await crud_users.get_multi(
             db=db,
-            schema_to_select=QuickAdminRead,
+            schema_to_select=schema,
             is_admin=True
         )
         
         if users is None:
-            raise Exception(f"Unable to fetch Admnistrators!")
+            raise Exception("Unable to fetch Administrators!")
         
-        emails_list = []
-        for item in users['data']:
-            if item['email'] != None:
-                emails_list.append(item['email'])
-            else:
-                continue
+        emails_list = [
+            item['email']
+            for item in users['data']
+            if item.get('email') is not None
+        ]
+        
         return emails_list
     except Exception as e:
         logger.error(f"Failed to fetch admin details: {e}")
+        return []
 
+def fetch_addresses(data: Dict) -> List[str]:
+    """
+    Fetches the layer address and opponent addresses from the input dictionary,
+    returning them as a plain list of addresses.
+
+    Parameters:
+        data (Dict): The dictionary containing betting data.
+
+    Returns:
+        List[str]: A list of addresses, with the layer address as the first element
+                   followed by opponent addresses.
+    """
+    try:
+       addresses = [data.get('layer')]
+
+       # Add opponent addresses if they exist
+       opponents = data.get('opponent', [])
+       opponent_addresses = [opponent['opponent_address'] for opponent in opponents if 'opponent_address' in opponent]
+
+       addresses.extend(opponent_addresses)
+
+       return addresses
+    except Exception as e:
+        logger.error(f"Unknown Error Ocuured: {e}")
+
+async def load_settled_prediction_data(
+        db,
+        pred_schema_to_select: Any,
+        opponent_model: Any,
+        pred_model: Any,
+        opp_schema_to_select: Any,
+        _hash_id: str
+    ):
+    """
+    - Returns a dictionary of a prediction nested with opponent(s) data
+    """
+    try:
+        preds = await crud_predictions.get_joined(
+            db,
+            schema_to_select=pred_schema_to_select,
+            nest_joins=True,
+            joins_config=[
+                JoinConfig(
+                    model=opponent_model,
+                    join_on=pred_model.id == opponent_model.prediction_id,
+                    schema_to_select=opp_schema_to_select,
+                    relationship_type="one-to-many"
+                )
+            ],
+            hash_identifier=_hash_id
+        )
+        if preds is None:
+            raise Exception(f"Prediction Not found")
+        else:
+            return preds
+    except Exception as e:
+        logger.error(f"Unknown Error occured: {e}")

@@ -91,3 +91,7 @@ class PredictionUpdate(SQLModel):
 
 class PredictionUpdateInternal(PredictionUpdate):
     pass
+
+class OnSettledPredRead(SQLModel):
+    id: int
+    layer: str

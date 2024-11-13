@@ -13,6 +13,12 @@ def on_game_register(game_id: int) -> str:
         "Stay tuned for updates!"
     )
 
+def on_game_reslution(game_id: int) -> str:
+    return (
+        f"Game with ID {game_id} has been resolved. "
+        "Stay tuned for updates!"
+    )
+
 def on_withdrawal_message(amount: float, balance: float) -> str:
     return (
         f"A withdrawal of ${amount:.2f} has been processed successfully. "
@@ -82,3 +88,7 @@ def on_ownership_transfer_completion(current: str, prev: str, contract_address: 
         f"- previous owner: {prev} \n"
         "If you find this activity suspicious, please report it to our team immediately."
     )
+
+def on_pred_settlement(match_id: int) -> str:
+    f"Your Prediction on Game {match_id} has been Settled.\n"
+    "If you have any questions, please feel free to reach out to us."
