@@ -1,3 +1,4 @@
+import asyncio
 from typing import Dict
 
 from fastapi import HTTPException
@@ -7,6 +8,7 @@ from ...api.dependencies import rate_limiter, get_admin
 from ...core.utils import queue
 from ...models.job import Job
 from ...schemas.job import ArbUsdtv1FallBack
+from ...core.web3_services.arbitrum_one.websocket_service import WebSocketMonitor
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -72,6 +74,23 @@ async def create_email_task(message: str) -> dict[str, str]:
     job = await queue.pool.enqueue_job("send_email_manually", message)  # type: ignore
     return {"id": job.job_id}
 
+@router.post("/websocket-task", response_model=Job, status_code=201)
+async def create_websocket_task() -> dict[str, str]:
+    """Create a new background task.
+
+    Parameters
+    ----------
+    message: str
+        The message or data to be processed by the task.
+
+    Returns
+    -------
+    dict[str, str]
+        A dictionary containing the ID of the created task.
+    """
+    job = await queue.pool.enqueue_job("run_websocket")  # type: ignore
+    return {"id": job.job_id}
+
 #------------For testing purposes------------
 @router.post("/task", response_model=Job, status_code=201, dependencies=[Depends(rate_limiter)])
 async def create_task(message: str) -> dict[str, str]:
@@ -89,4 +108,19 @@ async def create_task(message: str) -> dict[str, str]:
     """
     job = await queue.pool.enqueue_job("sample_background_task", message)  # type: ignore
     return {"id": job.job_id}
+
+
+websocket_task = None
+
+@router.post("/start-websocket")
+async def start_websocket():
+    global websocket_task
+
+    if websocket_task and not websocket_task.done():
+        raise HTTPException(status_code=400, detail="WebSocket monitor is already running.")
+    
+    monitor = WebSocketMonitor()
+    websocket_task = asyncio.create_task(monitor.start())
+
+    return {"status": "WebSocket monitor started"}
 

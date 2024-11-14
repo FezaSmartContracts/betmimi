@@ -10,6 +10,12 @@ from redis.asyncio import Redis
 import pickle
 from app.core.logger import logging
 from app.core.config import settings
+from app.core.akabokisi.manager import MailboxManager
+from app.core.db.database import async_get_db
+from app.core.akabokisi.messages import on_websocket_disconnect, on_websocket_reconnect
+from app.core.web3_services.arbitrum_one.handlers.helper import get_admin_emails
+from app.schemas.users import QuickAdminRead
+from app.core.constants import websocket_disconnected, websocket_reconnected
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +37,7 @@ class SubscriptionHandler:
                 # Check if reconnection has occurred
                 if self.reconnected:
                     await self._resubscribe()
+                    await self.monitor_reconnection()
                 self.reconnected = False
 
                 try:
@@ -45,6 +52,7 @@ class SubscriptionHandler:
                 except (ConnectionClosedError, ConnectionClosed) as e:
                     logger.error(f"Connection interrupted due to {e}. Reconnecting...")
                     self.reconnected = True
+                    await self.monitor_disconnection()
                     continue
                 except asyncio.CancelledError as e:
                     logger.error(f"Cancelling subscription processing. Cleaning up....: {e}")
@@ -53,6 +61,7 @@ class SubscriptionHandler:
                 except Exception as e:
                     logger.error(f"Unexpected error: {e}. Reconnecting...")
                     self.reconnected = True
+                    await self.monitor_disconnection()
                     continue
         except Exception as e:
             logger.error(f"Max retries 5 reached. Exited loop!")
@@ -137,6 +146,42 @@ class SubscriptionHandler:
 
             except Exception as e:
                 logger.error(f"Failed to resubscribe to subscription ID {sub_id}: {e}")
+
+    async def monitor_disconnection(self):
+        try:
+            async for db in async_get_db():
+                mail = MailboxManager()
+                subject, queue_name = websocket_disconnected()
+                message = on_websocket_disconnect()
+                    
+                addresses = await get_admin_emails(db, QuickAdminRead)
+                await mail.add_data_to_list(
+                    addresses,
+                    queue_name,
+                    subject,
+                    message
+                )
+                break
+        except Exception as e:
+            logger.error(f"Error while monitoring: {e}")
+
+    async def monitor_reconnection(self):
+        try:
+            async for db in async_get_db():
+                mail = MailboxManager()
+                subject, queue_name = websocket_reconnected()
+                message = on_websocket_reconnect()
+                    
+                addresses = await get_admin_emails(db, QuickAdminRead)
+                await mail.add_data_to_list(
+                    addresses,
+                    queue_name,
+                    subject,
+                    message
+                )
+                break
+        except Exception as e:
+            logger.error(f"Error while monitoring reconnects: {e}")
 
     
     def is_connected(self) -> bool:

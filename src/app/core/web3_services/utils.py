@@ -9,6 +9,13 @@ from ...core.logger import logging
 
 logger = logging.getLogger(__name__)
 
+USDTV1_ABI_PATH = "../artifacts/arbitrum/USDTv1.json"
+BALANCE_USDT_ABI_PATH = "../artifacts/arbitrum/UsdtManager.json"
+GAMES_MANAGER = "../artifacts/arbitrum/GamesManager.json"
+ONE_ABI_PATH = "../artifacts/arbitrum/OUSDTv1.json"
+TWO_ABI_PATH = "../artifacts/arbitrum/TUSDTv1.json"
+THREE_ABI_PATH = "../artifacts/arbitrum/HUSDTv1.json"
+
 def load_abi(relative_path: str) -> Dict[str, Any]:
     """Load contract ABI from a JSON file located relative to the calling file.
     
@@ -101,3 +108,14 @@ def arbitrum_contract_addresses_and_names() -> List[tuple[str, str]]:
     ]
     
     return arbitrum_address
+
+def return_abi_paths() -> Dict[str, str]:
+    """Returns name, path pair for contract ABI paths"""
+    return {
+        "WinOrLoss": USDTV1_ABI_PATH,
+        "One": ONE_ABI_PATH,
+        "Two": TWO_ABI_PATH,
+        "Three": THREE_ABI_PATH,
+        "Games": GAMES_MANAGER,
+        "Usdt": BALANCE_USDT_ABI_PATH
+    }

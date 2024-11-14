@@ -6,6 +6,7 @@ from arq.worker import Worker
 from ...core.logger import logging
 from ..web3_services.processor import BatchProcessor
 from ..akabokisi.manager import MailboxManager
+from ..web3_services.arbitrum_one.websocket_service import WebSocketMonitor
 from ..constants import ALCHEMY_REDIS_QUEUE_NAME, ALCHEMY_INPROCESSING_QUEUE
 from ...core.db.database import async_get_db
 from ..web3_services.arbitrum_one.functions import queue_missed_events_for_usdtv1_arb_alchemy
@@ -23,6 +24,8 @@ async def sample_background_task(ctx: Worker, name: str) -> str:
     return f"Task {name} is complete!"
 
 async def send_email(ctx: Worker) -> str:
+    """Automatically processes and sends emails"""
+
     mail = MailboxManager()
     try:
         await mail.process_emails()
@@ -32,6 +35,8 @@ async def send_email(ctx: Worker) -> str:
     logger.info("Task completed its run.")
 
 async def send_email_manually(ctx: Worker, name: str) -> str:
+    """Manually processes and sends emails"""
+
     mail = MailboxManager()
     try:
         await mail.process_emails()
@@ -41,6 +46,8 @@ async def send_email_manually(ctx: Worker, name: str) -> str:
     return f"Task {name} is complete!"
     
 async def process_data(ctx):
+    """Cron for continously processing data from block-chain"""
+
     logger.info("Process Data Cron job started")
     redis_connection: Redis = ctx['redis']
 
@@ -58,12 +65,8 @@ async def process_data(ctx):
         except Exception as e:
             logger.error(f"Unknown Error: {e}")
         finally:
-            # Ensure any necessary database cleanup here
-            await db.close()
-            logger.info("Database connection released.")
-
-        logger.info("Task completed its run.")
-
+            logger.info("Database connection released.") 
+        break
 
 async def call_usdtv1_arb_alchemy_fallback(
         ctx: Worker,
@@ -71,6 +74,8 @@ async def call_usdtv1_arb_alchemy_fallback(
         from_block: int,
         to_block: int
     ) -> None:
+    """Fetches data history. Should strictly be called when necessary"""
+
     timeout = 2 * settings.WEBSOCKET_TIMEOUT
     try:
         await asyncio.wait_for(

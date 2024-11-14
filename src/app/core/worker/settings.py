@@ -41,9 +41,9 @@ class WorkerSettings:
         cron(
             send_email,
             name="Automatic Emailing Cron",
-            minute=five_minute_squence,
-            run_at_startup=True,
-            timeout=300,
+            second={0, 30},
+            run_at_startup=False,
+            timeout=30,
             max_tries=1
         )
     ]

@@ -28,7 +28,6 @@ class Web3HttpConnectionManager:
         :param args: tuple - Arguments to pass to the contract function.
         :return: The data returned by the smart contract function.
         """
-        #self.w3 = Web3(AsyncHTTPProvider(f"{http_uri}{api_key}"))
         try:
             if not await self.w3.is_connected():
                 raise ConnectionError("Could not connect to the blockchain.")

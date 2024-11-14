@@ -66,3 +66,13 @@ def address_removed_from_whiteliist_alert() -> str:
     subject = f"New Contract Address removed from whitelist!"
     queue_name = ALERTS_QUEUE
     return subject, queue_name
+
+def websocket_disconnected() -> str:
+    subject = f"ALERT!!! Websocket disconnected!"
+    queue_name = ALERTS_QUEUE
+    return subject, queue_name
+
+def websocket_reconnected() -> str:
+    subject = f"ALERT!! Websocket Re-connected!"
+    queue_name = ALERTS_QUEUE
+    return subject, queue_name

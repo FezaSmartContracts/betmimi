@@ -51,20 +51,10 @@ async def revenue_withdrawn(payload, db):
         else:
             mail_address = caller['email']
 
-        users: QuickAdminRead | None = await crud_users.get_multi(
-            db=db,
-            schema_to_select=QuickAdminRead,
-            is_admin=True
-        )
-        
-        if users is None:
-            raise Exception(f"Unable to fetch Admnistrators!")
-
         mail = MailboxManager()
-        emails_list = await get_admin_emails(db)
+        emails_list = await get_admin_emails(db, QuickAdminRead)
         message = on_revenue_withdrawal(amount, public_address, mail_address)
-        subject = revenue_alert()[0]
-        queue_name = revenue_alert()[1]
+        subject, queue_name = revenue_alert()
 
         await mail.add_data_to_list(
             emails_list,
@@ -86,20 +76,10 @@ async def admin_added(payload, db):
         _address: str = payload['address']
         _user: str = decode(['address'], payload['topics'][1])[0]
 
-        users: QuickAdminRead | None = await crud_users.get_multi(
-            db=db,
-            schema_to_select=QuickAdminRead,
-            is_admin=True
-        )
-        
-        if users is None:
-            raise Exception(f"Unable to fetch Admnistrators!")
-
         mail = MailboxManager()
-        emails_list = await get_admin_emails(db)
+        emails_list = await get_admin_emails(db, QuickAdminRead)
         message = on_admin_added(_user, _address)
-        subject = admin_added_alert()[0]
-        queue_name = admin_added_alert()[1]
+        subject, queue_name = admin_added_alert()
 
         await mail.add_data_to_list(
             emails_list,
@@ -121,20 +101,10 @@ async def admin_removed(payload, db):
         _address: str = payload['address']
         _user: str = decode(['address'], payload['topics'][1])[0]
 
-        users: QuickAdminRead | None = await crud_users.get_multi(
-            db=db,
-            schema_to_select=QuickAdminRead,
-            is_admin=True
-        )
-        
-        if users is None:
-            raise Exception(f"Unable to fetch Admnistrators!")
-
         mail = MailboxManager()
-        emails_list = await get_admin_emails(db)
+        emails_list = await get_admin_emails(db, QuickAdminRead)
         message = on_admin_removed(_user, _address)
-        subject = admin_removed_alert()[0]
-        queue_name = admin_removed_alert()[1]
+        subject, queue_name = admin_removed_alert()
 
         await mail.add_data_to_list(
             emails_list,
@@ -156,20 +126,10 @@ async def fees_updated(payload, db):
         _address: str = payload['address']
         _fee: int = decode(['uint256'], payload['topics'][1])[0]
 
-        users: QuickAdminRead | None = await crud_users.get_multi(
-            db=db,
-            schema_to_select=QuickAdminRead,
-            is_admin=True
-        )
-        
-        if users is None:
-            raise Exception(f"Unable to fetch Admnistrators!")
-
         mail = MailboxManager()
-        emails_list = await get_admin_emails(db)
+        emails_list = await get_admin_emails(db, QuickAdminRead)
         message = on_fee_change(_fee, _address)
-        subject = charge_fees_changed_alert()[0]
-        queue_name = charge_fees_changed_alert()[1]
+        subject, queue_name = charge_fees_changed_alert()
 
         await mail.add_data_to_list(
             emails_list,
@@ -192,20 +152,10 @@ async def updated_whitelist(payload, db):
         contract_address: str = decode(['address'], payload['topics'][1])[0]
         by: str = decode(['address'], payload['topics'][1])[1]
 
-        users: QuickAdminRead | None = await crud_users.get_multi(
-            db=db,
-            schema_to_select=QuickAdminRead,
-            is_admin=True
-        )
-        
-        if users is None:
-            raise Exception(f"Unable to fetch Admnistrators!")
-
         mail = MailboxManager()
-        emails_list = await get_admin_emails(db)
+        emails_list = await get_admin_emails(db, QuickAdminRead)
         message = on_whitlist(contract_address, _address, by)
-        subject = address_added_to_whiteliist_alert()[0]
-        queue_name = address_added_to_whiteliist_alert()[1]
+        subject, queue_name = address_added_to_whiteliist_alert()
 
         await mail.add_data_to_list(
             emails_list,
@@ -228,20 +178,10 @@ async def updated_blacklist(payload, db):
         contract_address: str = decode(['address'], payload['topics'][1])[0]
         by: str = decode(['address'], payload['topics'][1])[1]
 
-        users: QuickAdminRead | None = await crud_users.get_multi(
-            db=db,
-            schema_to_select=QuickAdminRead,
-            is_admin=True
-        )
-        
-        if users is None:
-            raise Exception(f"Unable to fetch Admnistrators!")
-
         mail = MailboxManager()
-        emails_list = await get_admin_emails(db)
+        emails_list = await get_admin_emails(db, QuickAdminRead)
         message = on_blacklist(contract_address, _address, by)
-        subject = address_removed_from_whiteliist_alert()[0]
-        queue_name = address_removed_from_whiteliist_alert()[1]
+        subject, queue_name = address_removed_from_whiteliist_alert()
 
         await mail.add_data_to_list(
             emails_list,
@@ -264,20 +204,10 @@ async def transfer_ownership_initiated(payload, db):
         current_owner: str = decode(['address'], payload['topics'][1])[0]
         future_owner: str = decode(['address'], payload['topics'][1])[1]
 
-        users: QuickAdminRead | None = await crud_users.get_multi(
-            db=db,
-            schema_to_select=QuickAdminRead,
-            is_admin=True
-        )
-        
-        if users is None:
-            raise Exception(f"Unable to fetch Admnistrators!")
-
         mail = MailboxManager()
-        emails_list = await get_admin_emails(db)
+        emails_list = await get_admin_emails(db, QuickAdminRead)
         message = on_ownership_transfer_initiation(current_owner, future_owner, _address)
-        subject = ownership_transfer_initiation_alert()[0]
-        queue_name = ownership_transfer_initiation_alert()[1]
+        subject, queue_name = ownership_transfer_initiation_alert()
 
         await mail.add_data_to_list(
             emails_list,
@@ -300,20 +230,10 @@ async def transfer_ownership_completed(payload, db):
         previous_owner: str = decode(['address'], payload['topics'][1])[0]
         new_owner: str = decode(['address'], payload['topics'][1])[1]
 
-        users: QuickAdminRead | None = await crud_users.get_multi(
-            db=db,
-            schema_to_select=QuickAdminRead,
-            is_admin=True
-        )
-        
-        if users is None:
-            raise Exception(f"Unable to fetch Admnistrators!")
-
         mail = MailboxManager()
-        emails_list = await get_admin_emails(db)
+        emails_list = await get_admin_emails(db, QuickAdminRead)
         message = on_ownership_transfer_completion(new_owner, previous_owner, _address)
-        subject = ownership_transfer_completed_alert()[0]
-        queue_name = ownership_transfer_completed_alert()[1]
+        subject, queue_name = ownership_transfer_completed_alert()
 
         await mail.add_data_to_list(
             emails_list,

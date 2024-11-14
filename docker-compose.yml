@@ -30,7 +30,7 @@ services:
     depends_on:
       - db
       - redis
-      - websocket_service
+      #- websocket_service
     volumes:
       - ./src/app:/code/app
       - ./src/.env:/code/.env
@@ -68,20 +68,6 @@ services:
       - ./src/migrations:/code/migrations
       - ./src/alembic.ini:/code/alembic.ini
 
-  websocket_service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: ["python", "-m", "app.core.web3_services.arbitrum_one.websocket_service"]
-    env_file:
-      - ./src/.env
-    depends_on:
-      - redis
-    volumes:
-      - ./src/app:/code/app
-      - ./src/.env:/code/.env
-      - ./src/app/core/web3_services:/code/web3_services
-      - ./src/app/core/web3_services/arbitrum_one:/code/web3_services/arbitrum_one
 
   #-------- uncomment to run with pgadmin --------
   # pgadmin:

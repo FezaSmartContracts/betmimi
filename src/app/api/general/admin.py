@@ -9,7 +9,15 @@ from ...core.db.database import async_get_db
 from ...core.exceptions.http_exceptions import NotFoundException
 from ...crud.crud_users import crud_users
 from ...schemas.users import AdminUpdate, UserRead
-from ...core.web3_services.get_functions.usdt.functions import get_count_for_usdt_contracts
+from ...core.web3_services.get_functions.usdt.functions import (
+    get_count_for_usdt_contracts,
+    game_info,
+    is_admin,
+    is_whitelisted,
+    fee_percentage,
+    future_owner,
+    current_owner
+)
 
 router = APIRouter(tags=["administration"])
 
@@ -80,18 +88,84 @@ async def update_admin(
 @router.get("/counter")
 async def read_number(
     request: Request,
+    game_id: int = Query(..., description="Match ID")
 ):
     """
-    - Retrieve a paginated list of rate admins.
-    - This endpoint allows users to retrieve admins in a paginated format.
-    - Args:
-        - `request (Request):` The request object.
-        - `db (AsyncSession):` The database session.
-        - `page (int):` The page number to retrieve.
-        - `items_per_page (int):` The number of items per page.
-    - Returns:
-        - `dict:` A dictionary containing the paginated list of admins.
+    - Returns the current number of predictions for a given match from each contract
     """
-    counter = await get_count_for_usdt_contracts(1237)
+    counter = await get_count_for_usdt_contracts(game_id)
     return counter
 
+@router.get("/owner")
+async def get_current_owner(
+    request: Request,
+    data_key_name: str = Query(..., description="Key for contract data in the `deployments.json` file")
+) -> dict:
+    """
+    - Returns the current owner for a given contract
+    """
+    owner = {}
+    owner['data'] = await current_owner(data_key_name)
+    return owner
+
+@router.get("/pending-owner")
+async def get_future_owner(
+    request: Request,
+    data_key_name: str = Query(..., description="Key for contract data in the `deployments.json` file")
+) -> dict:
+    """
+    - Returns the pending owner for a given contract
+    """
+    owner = {}
+    owner['data'] = await future_owner(data_key_name)
+    return owner
+
+@router.get("/fee-percentage")
+async def get_fee_percentage(
+    request: Request,
+    data_key_name: str = Query(..., description="Key for contract data in the `deployments.json` file")
+) -> dict:
+    """
+    - Returns the current fee percentage for a given contract.
+    """
+    owner = {}
+    owner['data'] = await fee_percentage(data_key_name)
+    return owner
+
+@router.get("/game-info")
+async def get_fee_percentage(
+    request: Request,
+    match_id: int = Query(..., description="Match ID")
+) -> dict:
+    """
+    - Returns current data about a given match. It should be already registered on-chain
+    """
+    game = {}
+    game['data'] = await game_info(match_id)
+    return game
+
+@router.get("/is-admin")
+async def is_admin_address(
+    request: Request,
+    address: str = Query(..., description="Contract or EOA address"),
+    data_key_name: str = Query(..., description="Key for contract data in the `deployments.json` file")
+) -> dict:
+    """
+    - Returns a boolean value for the admin status of a given address.
+    """
+    value = {}
+    value['data'] = await is_admin(address, data_key_name)
+    return value
+
+@router.get("/is-whitelisted")
+async def is_whitelisted_address(
+    request: Request,
+    address: str = Query(..., description="Contract or EOA address"),
+    data_key_name: str = Query(..., description="Key for contract data in the `deployments.json` file")
+) -> dict:
+    """
+    - Returns a boolean value for if an address is whitelisted or not.
+    """
+    value = {}
+    value['data'] = await is_whitelisted(address, data_key_name)
+    return value

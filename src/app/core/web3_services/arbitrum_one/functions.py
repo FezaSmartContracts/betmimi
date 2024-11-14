@@ -5,7 +5,10 @@ from ..utils import arbitrum_contract_addresses
 from .callbacks import process_arbitrum_callbacklogs
 from ..fallback_manager import FallBackSubscriptionHandler
 from ...config import settings
-from ...constants import ALCHEMY_REDIS_QUEUE_NAME, ALCHEMY_SUBSCRIPTIONS_QUEUE_NAME
+from ...constants import (
+    ALCHEMY_REDIS_QUEUE_NAME,
+    ALCHEMY_SUBSCRIPTIONS_QUEUE_NAME
+)
 
 logger = logging.getLogger(__name__)
 

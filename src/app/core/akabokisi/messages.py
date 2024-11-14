@@ -90,5 +90,19 @@ def on_ownership_transfer_completion(current: str, prev: str, contract_address: 
     )
 
 def on_pred_settlement(match_id: int) -> str:
-    f"Your Prediction on Game {match_id} has been Settled.\n"
-    "If you have any questions, please feel free to reach out to us."
+    return (
+        f"Your Prediction on Game {match_id} has been Settled.\n"
+        "If you have any questions, please feel free to reach out to us."
+    )
+
+def on_websocket_disconnect() -> str:
+    return(
+        f"The system has detected a websocket disconnection at {datetime.now()}.\n"
+        "Please alert the core team such that they can take an immediate action."
+    )
+
+def on_websocket_reconnect() -> str:
+    return(
+        f"Websocket has been reconnected successfully at {datetime.now()}.\n"
+        "Please alert the core team such that they can take an immediate action."
+    )
