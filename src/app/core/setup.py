@@ -3,6 +3,7 @@ from contextlib import _AsyncGeneratorContextManager, asynccontextmanager
 from typing import Any
 
 import anyio
+import asyncio
 import anyio.to_thread
 import fastapi
 import redis.asyncio as redis
@@ -16,7 +17,7 @@ from sqlmodel import SQLModel
 
 from ..api.dependencies import get_current_superuser
 from ..middleware.client_cache_middleware import ClientCacheMiddleware
-#from ..core.web3_services.manager import WebSocketManager
+from ..core.web3_services.arbitrum_one.websocket_service import WebSocketMonitor
 from .config import (
     AppSettings,
     ClientSideCacheSettings,
@@ -33,7 +34,7 @@ from .db.database import async_engine as engine
 from .utils import cache, queue, rate_limit
 from ..models import *
 
-WSSL_URI = f"wss://arb-sepolia.g.alchemy.com/v2/{settings.ALCHEMY_API_KEY}"
+websocket_task = None
 
 # -------------- database --------------
 async def create_tables() -> None:
@@ -48,6 +49,16 @@ async def create_redis_cache_pool() -> None:
 
 async def close_redis_cache_pool() -> None:
     await cache.client.aclose()  # type: ignore
+
+#-------arbitrum-alchemy-websocket---------
+async def start_websocket():
+    global websocket_task
+
+    if websocket_task and not websocket_task.done():
+        raise Exception("WebSocket monitor is already running.")
+    monitor = WebSocketMonitor()
+    websocket_task = asyncio.create_task(monitor.start())
+
 
 
 # -------------- queue --------------
@@ -105,6 +116,9 @@ def lifespan_factory(
 
         if isinstance(settings, RedisRateLimiterSettings):
             await create_redis_rate_limit_pool()
+        
+        if isinstance(settings, AlchemySettings):
+            await start_websocket()
 
 
         yield
