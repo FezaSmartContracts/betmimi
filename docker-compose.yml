@@ -30,7 +30,6 @@ services:
     depends_on:
       - db
       - redis
-      #- websocket_service
     volumes:
       - ./src/app:/code/app
       - ./src/.env:/code/.env
@@ -93,7 +92,6 @@ services:
   #   depends_on:
   #     - web
 
-    #-------- uncomment to create first superuser --------
   create_superuser:
     build:
       context: .
