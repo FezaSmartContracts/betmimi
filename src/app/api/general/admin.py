@@ -1,12 +1,14 @@
+import asyncio
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Request, Query
+from fastapi import APIRouter, Depends, Request, Query, HTTPException
 from fastcrud.paginated import PaginatedListResponse, compute_offset, paginated_response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..dependencies import get_current_superuser
 from ...core.db.database import async_get_db
 from ...core.exceptions.http_exceptions import NotFoundException
+from ...core.web3_services.arbitrum_one.websocket_service import WebSocketMonitor
 from ...crud.crud_users import crud_users
 from ...schemas.users import AdminUpdate, UserRead
 from ...core.web3_services.get_functions.usdt.functions import (
@@ -20,6 +22,28 @@ from ...core.web3_services.get_functions.usdt.functions import (
 )
 
 router = APIRouter(tags=["administration"])
+
+
+websocket_task = None
+
+@router.post(
+    "/start-websocket",
+    #dependencies=[
+    #    Depends(get_admin),
+    #    Depends(rate_limiter)
+    #]
+)
+async def start_websocket():
+    """Should `Strictly` be called `only` when necessary"""
+    global websocket_task
+
+    if websocket_task and not websocket_task.done():
+        raise HTTPException(status_code=400, detail="WebSocket monitor is already running.")
+    
+    monitor = WebSocketMonitor()
+    websocket_task = asyncio.create_task(monitor.start())
+
+    return {"status": "WebSocket monitor started"}
 
 
 @router.get("/admins", response_model=PaginatedListResponse[UserRead])

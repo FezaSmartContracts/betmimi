@@ -1,12 +1,13 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastcrud.paginated import PaginatedListResponse, compute_offset, paginated_response
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastcrud import JoinConfig
 
 from ...api.dependencies import get_current_superuser, get_current_user
 from ...core.db.database import async_get_db
+from ...core.utils.cache import cache
 from ...crud.crud_predictions import crud_predictions
 from ...crud.crud_users import crud_users
 from ...models.user import Opponent, Prediction, User
@@ -22,6 +23,7 @@ router = APIRouter(tags=["predictions"])
 
 @router.get("/count-all", response_model=Count)
 async def get_all_active_predictions_count(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)]
 ) -> dict:
     """
@@ -36,6 +38,7 @@ async def get_all_active_predictions_count(
     
 @router.get("/count-by-matchid", response_model=Count)
 async def get_predictions_for_matchid(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     matchid: int = Query(..., description="The ID of the match")
 ) -> dict:
@@ -49,7 +52,13 @@ async def get_predictions_for_matchid(
     return Count(number=preds)
 
 @router.get("/count-user-active-preds", response_model=Count)
-async def get_predictions_for_matchid(
+@cache(
+    key_prefix="count_active_preds:{public_address}",
+    resource_id_name="public_address",
+    expiration=30
+)
+async def count_user_active_predictions(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     public_address: str = Query(..., description="User Address")
 ) -> dict:
@@ -65,6 +74,7 @@ async def get_predictions_for_matchid(
 
 @router.get("/prediction")
 async def get_prediction(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     pred_id: int = Query(..., description="The ID of the prediction")
 ) -> dict:
@@ -85,8 +95,15 @@ async def get_prediction(
     else:
         return {}
 
-@router.get("/user-specific-history", dependencies=[Depends(get_current_superuser)])
+#dependencies=[Depends(get_current_user)]
+@router.get("/user-specific-history")
+@cache(
+    key_prefix="user_specific_history:{user_address}",
+    resource_id_name="public_address",
+    expiration=60
+)
 async def get_all_user_specific_prediction_history(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     user_address: str = Query(..., description="User's Public Address")
 ) -> dict:
@@ -114,13 +131,19 @@ async def get_all_user_specific_prediction_history(
         return user_data
     else:
         return {}
-    
+
+#dependencies=[Depends(get_current_user)],  
 @router.get(
     "/paginated-history",
-    dependencies=[Depends(get_current_superuser)],
     response_model=PaginatedListResponse[PredictionRead]
 )
+@cache(
+    key_prefix="history_{use_address}:page_{page}:items_per_page_{items_per_page}",
+    resource_id_name="layer",
+    expiration=60
+)
 async def get_all_user_prediction_history(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
@@ -145,12 +168,13 @@ async def get_all_user_prediction_history(
     )
     return response
 
+#dependencies=[Depends(get_current_user)],
 @router.get(
     "/user-active-predictions",
-    dependencies=[Depends(get_current_superuser)],
     response_model=PaginatedListResponse[PredictionRead]
 )
 async def get_all_user_active_predictions(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
@@ -178,6 +202,7 @@ async def get_all_user_active_predictions(
 
 @router.get("/active-predictions-and-opponents", response_model=PaginatedListResponse[dict])
 async def get_all_active_prediction_and_opponents(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int
@@ -210,6 +235,7 @@ async def get_all_active_prediction_and_opponents(
 
 @router.get("/active-preds-and-opps_by-matchid", response_model=PaginatedListResponse[dict])
 async def get_all_active_prediction_and_opponents_by_matchid(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
@@ -244,6 +270,7 @@ async def get_all_active_prediction_and_opponents_by_matchid(
 
 @router.get("/active-preds-sort-by-id-and-amount", response_model=PaginatedListResponse[dict])
 async def get_all_active_predictions_sorted_by_id_and_amount(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
@@ -280,6 +307,7 @@ async def get_all_active_predictions_sorted_by_id_and_amount(
 
 @router.get("/active-preds-sort-by-id-and-time-0", response_model=PaginatedListResponse[dict])
 async def get_all_active_predictions_sorted_by_id_and_time_0(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
@@ -317,6 +345,7 @@ async def get_all_active_predictions_sorted_by_id_and_time_0(
 
 @router.get("/active-preds-sort-by-id-and-time-1", response_model=PaginatedListResponse[dict])
 async def get_all_active_predictions_sorted_by_id_and_time_1(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
@@ -354,6 +383,7 @@ async def get_all_active_predictions_sorted_by_id_and_time_1(
 
 @router.get("/active-preds-sort-by-id-and-full-matching", response_model=PaginatedListResponse[dict])
 async def get_all_active_predictions_sorted_by_id_and_full_matching(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
@@ -390,6 +420,7 @@ async def get_all_active_predictions_sorted_by_id_and_full_matching(
 
 @router.get("/active-preds-sort-by-id-and-partial-matching", response_model=PaginatedListResponse[dict])
 async def get_all_active_predictions_sorted_by_id_and_partial_matching(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
@@ -427,6 +458,7 @@ async def get_all_active_predictions_sorted_by_id_and_partial_matching(
 
 @router.get("/active-preds-sort-by-id-and-unmatched", response_model=PaginatedListResponse[dict])
 async def get_all_active_predictions_sorted_by_id_and_unmatched(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
@@ -463,12 +495,18 @@ async def get_all_active_predictions_sorted_by_id_and_unmatched(
     return response
 
 #----------------Backs----------------------------------------------------
+#dependencies=[Depends(get_current_user)],
 @router.get(
     "/user-backs-history",
-    dependencies=[Depends(get_current_superuser)],
     response_model=PaginatedListResponse[dict]
 )
+@cache(
+    key_prefix="user_backing_history:{user_address}:page_{page}:items_per_page_{items_per_page}",
+    resource_id_name="user_address",
+    expiration=60
+)
 async def get_all_user_backing_histroy(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
@@ -503,12 +541,13 @@ async def get_all_user_backing_histroy(
     )
     return response
 
+#dependencies=[Depends(get_current_user)],
 @router.get(
     "/user-active-backs-history",
-    dependencies=[Depends(get_current_superuser)],
     response_model=PaginatedListResponse[dict]
 )
 async def get_all_user_active_backing_histroy(
+    request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
     page: int,
     items_per_page: int,
