@@ -72,37 +72,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-'''async def create_first_user(session: AsyncSession) -> None:
-    try:
-        public_address = settings.ADMIN_PUBLIC_ADDRESS
-        email = settings.ADMIN_EMAIL
-        nonce = generate_random()
-
-        # Check if the user already exists using the ORM User model
-        query = select(User).filter_by(public_address=public_address)
-        result = await session.execute(query)
-        user = result.scalar_one_or_none()
-
-        if user is None:
-            # Create a new instance of the User model for insertion
-            new_user = User(
-                public_address=public_address,
-                nonce=nonce,
-                email=email,
-                is_superuser=True,
-                created_at=datetime.now(timezone.utc),
-            )
-
-            # Add and commit the new user to the database
-            session.add(new_user)
-            await session.commit()
-
-            logger.info(f"Admin user with public address {public_address} created successfully.")
-
-        else:
-            logger.info(f"Admin user with public address {public_address} already exists.")
-
-    except Exception as e:
-        logger.error(f"Error creating admin user: {e}")'''

@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "fast_demo"
+name = "betmimi"
 version = "0.1.0"
-description = "Async demo app using fastapi, sqlmodel, redis and postgres"
+description = "Async app using fastapi, sqlmodel, redis and postgres"
 authors = ["moses966 <mosikoproducts@gmail.com>"]
-license = "MIT"
+license = "Proprietary"
 
 [tool.poetry.dependencies]
 python = "^3.10"
