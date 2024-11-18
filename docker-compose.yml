@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: betmimi
     # -------- replace with comment to run with gunicorn --------
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     # command: gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
@@ -24,6 +25,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: betmimi
     command: arq app.core.worker.settings.WorkerSettings
     env_file:
       - ./src/.env
@@ -56,10 +58,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: betmimi
     command: ["./wait-for-it.sh", "db:5432", "--", "sh", "-c", "alembic upgrade head"]
 
     env_file:
       - ./src/.env
+    environment:
+      PYTHONPATH: "/code/src"
     depends_on:
       - db
     volumes:
@@ -67,35 +72,11 @@ services:
       - ./src/migrations:/code/migrations
       - ./src/alembic.ini:/code/alembic.ini
 
-
-  #-------- uncomment to run with pgadmin --------
-  # pgadmin:
-  #   container_name: pgadmin4
-  #   image: dpage/pgadmin4:latest
-  #   restart: always
-  #   ports:
-  #     - "5050:80"
-  #   volumes:
-  #     - pgadmin-data:/var/lib/pgadmin
-  #   env_file:
-  #     - ./src/.env
-  #   depends_on:
-  #     - db
-
-  #-------- uncomment to run with nginx --------
-  # nginx:
-  #   image: nginx:latest
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - ./default.conf:/etc/nginx/conf.d/default.conf
-  #   depends_on:
-  #     - web
-
   create_superuser:
     build:
       context: .
       dockerfile: Dockerfile
+    image: betmimi
     env_file:
       - ./src/.env
     depends_on:
@@ -105,21 +86,6 @@ services:
     volumes:
       - ./src:/code/src
       - ./wait-for-it.sh:/wait-for-it.sh
-
-  #-------- uncomment to run tests --------
-  # pytest:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   env_file:
-  #     - ./src/.env
-  #   depends_on:
-  #     - db
-  #     - create_superuser
-  #     - redis
-  #   command: python -m pytest ./tests
-  #   volumes:
-  #     - .:/code
 
 volumes:
   postgres-data:
