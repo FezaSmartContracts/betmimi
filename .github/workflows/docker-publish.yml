@@ -28,3 +28,7 @@ jobs:
           context: .
           push: true
           tags: muwawu/web3-application:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
