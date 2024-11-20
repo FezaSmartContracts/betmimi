@@ -9,6 +9,8 @@ services:
     # command: gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
     env_file:
       - ./src/.env
+    environment:
+      PYTHONPATH: "/code/src"
     # -------- replace with comment if you are using nginx --------
     ports:
       - "8000:8000"
@@ -29,6 +31,8 @@ services:
     command: arq app.core.worker.settings.WorkerSettings
     env_file:
       - ./src/.env
+    environment:
+      PYTHONPATH: "/code/src"
     depends_on:
       - db
       - redis
@@ -40,6 +44,8 @@ services:
     image: postgres:13
     env_file:
       - ./src/.env
+    environment:
+      PYTHONPATH: "/code/src"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     #expose:
@@ -79,6 +85,8 @@ services:
     image: betmimi
     env_file:
       - ./src/.env
+    environment:
+      PYTHONPATH: "/code/src"
     depends_on:
       - db
       - migrations  # Ensures migrations are applied before creating superuser
