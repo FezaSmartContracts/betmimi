@@ -47,7 +47,7 @@
     
     # Copy application code
     COPY ./src /code/src
-    
+
     # Copy wait-for-it script
     COPY wait-for-it.sh /code/wait-for-it.sh
     RUN chmod +x /code/wait-for-it.sh

@@ -1,7 +1,7 @@
 from fastcrud import FastCRUD
 
-from ..models.user import User
-from ..schemas.users import (
+from app.models.user import User
+from app.schemas.users import (
     UserCreate, UserUpdate,
     UserUpdateInternal
 )

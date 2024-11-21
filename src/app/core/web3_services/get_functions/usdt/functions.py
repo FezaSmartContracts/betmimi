@@ -1,7 +1,7 @@
 from web3 import Web3
-from ..manager import Web3HttpConnectionManager
-from ....logger import logging
-from ...utils import load_abi, load_contract_address, arbitrum_contract_addresses_and_names, return_abi_paths
+from app.core.web3_services.get_functions.manager import Web3HttpConnectionManager
+from app.core.logger import logging
+from app.core.web3_services.utils import load_abi, load_contract_address, arbitrum_contract_addresses_and_names, return_abi_paths
 
 logger = logging.getLogger(__name__)
 

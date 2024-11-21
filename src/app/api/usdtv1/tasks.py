@@ -3,10 +3,10 @@ from typing import Dict
 from fastapi import HTTPException
 from fastapi import APIRouter, Depends
 
-from ...api.dependencies import rate_limiter, get_admin
-from ...core.utils import queue
-from ...models.job import Job
-from ...schemas.job import ArbUsdtv1FallBack
+from app.api.dependencies import rate_limiter, get_admin
+from app.core.utils import queue
+from app.models.job import Job
+from app.schemas.job import ArbUsdtv1FallBack
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 

@@ -1,7 +1,7 @@
 from typing import Dict
 
-from ..logger import logging
-from ..constants import MAIL_QUEUE, ALERTS_QUEUE
+from app.core.logger import logging
+from app.core.constants import MAIL_QUEUE, ALERTS_QUEUE
 
 logger = logging.getLogger(__name__)
 

@@ -3,13 +3,12 @@ import asyncio
 import uvloop
 from redis.asyncio import Redis
 from arq.worker import Worker
-from ...core.logger import logging
-from ..web3_services.processor import BatchProcessor
-from ..akabokisi.manager import MailboxManager
-from ..web3_services.arbitrum_one.websocket_service import WebSocketMonitor
-from ..constants import ALCHEMY_REDIS_QUEUE_NAME, ALCHEMY_INPROCESSING_QUEUE
-from ...core.db.database import async_get_db
-from ..web3_services.arbitrum_one.functions import queue_missed_events_for_usdtv1_arb_alchemy
+from app.core.logger import logging
+from app.core.web3_services.processor import BatchProcessor
+from app.core.akabokisi.manager import MailboxManager
+from app.core.constants import ALCHEMY_REDIS_QUEUE_NAME, ALCHEMY_INPROCESSING_QUEUE
+from app.core.db.database import async_get_db
+from app.core.web3_services.arbitrum_one.functions import queue_missed_events_for_usdtv1_arb_alchemy
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)

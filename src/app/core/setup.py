@@ -15,10 +15,10 @@ from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from sqlmodel import SQLModel
 
-from ..api.dependencies import get_current_superuser
-from ..middleware.client_cache_middleware import ClientCacheMiddleware
-from ..core.web3_services.arbitrum_one.websocket_service import WebSocketMonitor
-from .config import (
+from app.api.dependencies import get_current_superuser
+from app.middleware.client_cache_middleware import ClientCacheMiddleware
+from app.core.web3_services.arbitrum_one.websocket_service import WebSocketMonitor
+from app.core.config import (
     AppSettings,
     ClientSideCacheSettings,
     DatabaseSettings,
@@ -30,9 +30,9 @@ from .config import (
     AlchemySettings,
     settings,
 )
-from .db.database import async_engine as engine
-from .utils import cache, queue, rate_limit
-from ..models import *
+from app.core.db.database import async_engine as engine
+from app.core.utils import cache, queue, rate_limit
+from app.models import *
 
 websocket_task = None
 

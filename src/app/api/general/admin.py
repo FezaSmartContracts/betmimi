@@ -5,13 +5,13 @@ from fastapi import APIRouter, Depends, Request, Query, HTTPException
 from fastcrud.paginated import PaginatedListResponse, compute_offset, paginated_response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..dependencies import get_current_superuser
-from ...core.db.database import async_get_db
-from ...core.exceptions.http_exceptions import NotFoundException
-from ...core.web3_services.arbitrum_one.websocket_service import WebSocketMonitor
-from ...crud.crud_users import crud_users
-from ...schemas.users import AdminUpdate, UserRead
-from ...core.web3_services.get_functions.usdt.functions import (
+from app.api.dependencies import get_current_superuser
+from app.core.db.database import async_get_db
+from app.core.exceptions.http_exceptions import NotFoundException
+from app.core.web3_services.arbitrum_one.websocket_service import WebSocketMonitor
+from app.crud.crud_users import crud_users
+from app.schemas.users import AdminUpdate, UserRead
+from app.core.web3_services.get_functions.usdt.functions import (
     get_count_for_usdt_contracts,
     game_info,
     is_admin,

@@ -5,13 +5,13 @@ from fastapi import APIRouter, Depends, Request, Response, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from web3.auto import w3
 
-from ...core.config import settings
-from ...core.db.database import async_get_db
-from ...core.exceptions.http_exceptions import UnauthorizedException
-from ...core.schemas import Token
-from ...crud.crud_users import crud_users
-from ...core.address_verification import verify_signature, generate_random
-from ...schemas.users import (
+from app.core.config import settings
+from app.core.db.database import async_get_db
+from app.core.exceptions.http_exceptions import UnauthorizedException
+from app.core.schemas import Token
+from app.crud.crud_users import crud_users
+from app.core.address_verification import verify_signature, generate_random
+from app.schemas.users import (
     UserNonce,
     SignatureVerificationRequest,
     UserCreate,
@@ -19,7 +19,7 @@ from ...schemas.users import (
     UserReadNonce,
     UserUpdateInternal
 )
-from ...core.security import (
+from app.core.security import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_access_token,
     create_refresh_token,

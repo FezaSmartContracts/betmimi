@@ -1,7 +1,7 @@
 from web3 import Web3, AsyncWeb3, AsyncHTTPProvider
 
-from ...logger import logging
-from ...config import settings
+from app.core.logger import logging
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 

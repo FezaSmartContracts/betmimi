@@ -3,9 +3,9 @@ from typing import List, Dict, Any
 from decimal import Decimal, ROUND_DOWN
 from fastcrud import JoinConfig
 
-from .....crud.crud_users import crud_users
-from .....crud.crud_predictions import crud_predictions
-from .....core.logger import logging
+from app.crud.crud_users import crud_users
+from app.crud.crud_predictions import crud_predictions
+from app.core.logger import logging
 
 logger = logging.getLogger(__name__)
 

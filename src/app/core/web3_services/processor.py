@@ -1,7 +1,7 @@
 import pickle
 from redis.asyncio import Redis
 
-from ...core.logger import logging
+from app.core.logger import logging
 
 logger = logging.getLogger(__name__)
 

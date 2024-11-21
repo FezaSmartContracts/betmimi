@@ -7,10 +7,10 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, To
 from app.core.logger import logging
 from app.core.config import settings
-from .topics import event_queue_dict
-from ..constants import USER_NAME
-from .messages import support_link
-from .helper import current_year
+from app.core.akabokisi.topics import event_queue_dict
+from app.core.constants import USER_NAME
+from app.core.akabokisi.messages import support_link
+from app.core.akabokisi.helper import current_year
 
 logger = logging.getLogger(__name__)
 

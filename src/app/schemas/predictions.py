@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional, List
 from datetime import datetime
-from ..models.user import Opponent
+from app.models.user import Opponent
 
 
 #-----------Prediction schemas-----------#

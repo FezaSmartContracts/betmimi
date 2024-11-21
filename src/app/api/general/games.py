@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends
 from fastcrud.paginated import PaginatedListResponse, compute_offset, paginated_response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...core.db.database import async_get_db
-from ...crud.crud_matches import crud_matches
-from ...schemas.games import GameRead
+from app.core.db.database import async_get_db
+from app.crud.crud_matches import crud_matches
+from app.schemas.games import GameRead
 
 router = APIRouter(tags=["games"])
 

@@ -1,7 +1,7 @@
 from fastcrud import FastCRUD
 
-from ..models.user import Opponent
-from ..schemas.opponents import (
+from app.models.user import Opponent
+from app.schemas.opponents import (
     OpponentCreate, OpponentUpdateInternal, OpponentUpdate
 )
 

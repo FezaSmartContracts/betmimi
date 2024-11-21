@@ -1,24 +1,22 @@
 import random
 from eth_abi.abi import decode
 from sqlalchemy import text
-from typing import List
 import asyncio
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.future import select
 from sqlalchemy.dialects.postgresql import insert
 
-from .....core.logger import logging
-from .....models.user import Prediction, Opponent
-from .....crud.crud_predictions import crud_predictions
-from .....crud.crud_users import crud_users
-from .....crud.crud_opponent import crud_opponent
-from .....crud.crud_matches import crud_matches
-from .....schemas.opponents import OpponentCreate, QuickOppRead, OnsettledOppRead
-from .....schemas.games import GameCreate, GameIdRead, GameStatusUpdate
-from ....akabokisi.manager import MailboxManager
-from ....constants import game_registered_notify, pred_settled_notify
-from ....akabokisi.messages import on_game_register, on_pred_settlement
-from .....schemas.users import (
+from app.core.logger import logging
+from app.models.user import Prediction, Opponent
+from app.crud.crud_predictions import crud_predictions
+from app.crud.crud_users import crud_users
+from app.crud.crud_opponent import crud_opponent
+from app.crud.crud_matches import crud_matches
+from app.schemas.opponents import OpponentCreate, QuickOppRead, OnsettledOppRead
+from app.schemas.games import GameCreate, GameIdRead, GameStatusUpdate
+from app.core.akabokisi.manager import MailboxManager
+from app.core.constants import game_registered_notify, pred_settled_notify
+from app.core.akabokisi.messages import on_game_register, on_pred_settlement
+from app.schemas.users import (
     UserRead,
     UserBalanceRead,
     QuickUpdateUserBalance,

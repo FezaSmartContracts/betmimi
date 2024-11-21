@@ -5,7 +5,7 @@ from app.core.logger import logging
 from app.core.config import settings
 from app.core.constants import ALCHEMY_SUBSCRIPTIONS_QUEUE_NAME, ALCHEMY_REDIS_QUEUE_NAME
 
-from .functions import init_subscribe_to_arb_events
+from app.core.web3_services.arbitrum_one.functions import init_subscribe_to_arb_events
 
 logger = logging.getLogger(__name__)
 

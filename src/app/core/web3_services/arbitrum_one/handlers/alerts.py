@@ -1,9 +1,9 @@
 from eth_abi.abi import decode
 
-from .....core.logger import logging
-from .helper import usdt_to_decimal, get_admin_emails
-from ....akabokisi.manager import MailboxManager
-from ....constants import (
+from app.core.logger import logging
+from app.core.web3_services.arbitrum_one.handlers.helper import usdt_to_decimal, get_admin_emails
+from app.core.akabokisi.manager import MailboxManager
+from app.core.constants import (
     revenue_alert,
     admin_added_alert,
     admin_removed_alert,
@@ -13,7 +13,7 @@ from ....constants import (
     ownership_transfer_initiation_alert,
     ownership_transfer_completed_alert
 )
-from ....akabokisi.messages import (
+from app.core.akabokisi.messages import (
     on_revenue_withdrawal,
     on_admin_added,
     on_admin_removed,
@@ -23,8 +23,8 @@ from ....akabokisi.messages import (
     on_ownership_transfer_initiation,
     on_whitlist,
 )
-from .....crud.crud_users import crud_users
-from .....schemas.users import QuickAdminRead, QuickEmailRead
+from app.crud.crud_users import crud_users
+from app.schemas.users import QuickAdminRead, QuickEmailRead
 
 logger = logging.getLogger(__name__)
 

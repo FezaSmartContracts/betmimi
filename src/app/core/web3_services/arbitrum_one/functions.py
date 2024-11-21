@@ -1,11 +1,11 @@
 import asyncio
 
-from ....core.logger import logging
-from ..utils import arbitrum_contract_addresses
-from .callbacks import process_arbitrum_callbacklogs
-from ..fallback_manager import FallBackSubscriptionHandler
-from ...config import settings
-from ...constants import (
+from app.core.logger import logging
+from app.core.web3_services.utils import arbitrum_contract_addresses
+from app.core.web3_services.arbitrum_one.callbacks import process_arbitrum_callbacklogs
+from app.core.web3_services.fallback_manager import FallBackSubscriptionHandler
+from app.core.config import settings
+from app.core.constants import (
     ALCHEMY_REDIS_QUEUE_NAME,
     ALCHEMY_SUBSCRIPTIONS_QUEUE_NAME
 )

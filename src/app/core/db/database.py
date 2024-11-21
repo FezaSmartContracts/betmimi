@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-from ..config import settings
+from app.core.config import settings
 
 
 DATABASE_URI = settings.POSTGRES_URI

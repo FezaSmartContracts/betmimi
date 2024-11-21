@@ -1,6 +1,6 @@
 from typing import Dict
 
-from .handlers.usdtv1 import (
+from app.core.web3_services.arbitrum_one.handlers.usdtv1 import (
     process_usdtv1_deposits,
     process_usdtv1_backs,
     process_usdtv1_lays,
@@ -13,7 +13,7 @@ from .handlers.usdtv1 import (
     game_resolved,
     process_usdtv1_settled_pred_balance_read
 )
-from .handlers.alerts import (
+from app.core.web3_services.arbitrum_one.handlers.alerts import (
     revenue_withdrawn,
     admin_added,
     admin_removed,

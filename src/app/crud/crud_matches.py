@@ -1,7 +1,7 @@
 from fastcrud import FastCRUD
 
-from ..models.games import Game
-from ..schemas.games import (
+from app.models.games import Game
+from app.schemas.games import (
     GameCreate,
     GameStatusUpdate,
     GameCreateInternal

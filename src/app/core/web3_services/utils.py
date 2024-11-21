@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 from hexbytes import HexBytes
 from eth_utils import keccak
 
-from ...core.logger import logging
+from app.core.logger import logging
 
 logger = logging.getLogger(__name__)
 

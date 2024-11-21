@@ -1,9 +1,9 @@
 import json
 from hexbytes import HexBytes
 
-from ....core.logger import logging
-from .event_topics import usdtv1_event_topics_dict
-from .handler import usdtv1_event_handlers
+from app.core.logger import logging
+from app.core.web3_services.arbitrum_one.event_topics import usdtv1_event_topics_dict
+from app.core.web3_services.arbitrum_one.handler import usdtv1_event_handlers
 
 
 logger = logging.getLogger(__name__)

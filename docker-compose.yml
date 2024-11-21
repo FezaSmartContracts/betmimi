@@ -44,8 +44,6 @@ services:
     image: postgres:13
     env_file:
       - ./src/.env
-    environment:
-      PYTHONPATH: "/code/src"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     #expose:
@@ -93,6 +91,7 @@ services:
     command: ["./wait-for-it.sh", "migrations:5432", "--", "python", "-m", "src.scripts.create_first_superuser"]
     volumes:
       - ./src:/code/src
+      - ./src/.env:/code/.env
       - ./wait-for-it.sh:/wait-for-it.sh
 
 volumes:

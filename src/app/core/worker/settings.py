@@ -1,8 +1,8 @@
 from arq.connections import RedisSettings
 from arq.cron import cron
 
-from ...core.config import settings
-from .functions import (
+from app.core.config import settings
+from app.core.worker.functions import (
     sample_background_task,
     shutdown,
     startup,

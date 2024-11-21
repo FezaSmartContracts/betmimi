@@ -4,10 +4,10 @@ from datetime import timezone, datetime
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Float, Table, insert, select
 
-from ..app.core.config import settings
-from ..app.core.db.database import AsyncSession, async_engine, local_session
-from ..app.models.user import User
-from ..app.core.address_verification import generate_random
+from app.core.config import settings
+from app.core.db.database import AsyncSession, async_engine, local_session
+from app.models.user import User
+from app.core.address_verification import generate_random
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

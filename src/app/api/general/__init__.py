@@ -1,11 +1,11 @@
 from fastapi import APIRouter
 
-from .connect_wallet import router as connect_router
-from .disconnect_wallet import router as disconnect_router
-from .rate_limits import router as rate_limits_router
-from .users import router as users_router
-from .admin import router as admin_router
-from .games import router as games_router
+from app.api.general.connect_wallet import router as connect_router
+from app.api.general.disconnect_wallet import router as disconnect_router
+from app.api.general.rate_limits import router as rate_limits_router
+from app.api.general.users import router as users_router
+from app.api.general.admin import router as admin_router
+from app.api.general.games import router as games_router
 
 router = APIRouter(prefix="/v1")
 router.include_router(connect_router)

@@ -1,7 +1,7 @@
 from typing import Dict
 from hexbytes import HexBytes
 
-from ..utils import load_abi, get_event_topic
+from app.core.web3_services.utils import load_abi, get_event_topic
 from ...logger import logging
 
 

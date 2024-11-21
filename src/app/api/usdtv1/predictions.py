@@ -5,17 +5,17 @@ from fastcrud.paginated import PaginatedListResponse, compute_offset, paginated_
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastcrud import JoinConfig
 
-from ...api.dependencies import get_current_superuser, get_current_user
-from ...core.db.database import async_get_db
-from ...core.utils.cache import cache
-from ...crud.crud_predictions import crud_predictions
-from ...crud.crud_users import crud_users
-from ...models.user import Opponent, Prediction, User
+from app.api.dependencies import get_current_superuser, get_current_user
+from app.core.db.database import async_get_db
+from app.core.utils.cache import cache
+from app.crud.crud_predictions import crud_predictions
+from app.crud.crud_users import crud_users
+from app.models.user import Opponent, Prediction, User
 
-from ...schemas.users import UserRead
-from ...schemas.predictions import PredictionRead, PredictionAndOpponents
-from ...schemas.opponents import OpponentRead
-from ...schemas.custom import Count
+from app.schemas.users import UserRead
+from app.schemas.predictions import PredictionRead, PredictionAndOpponents
+from app.schemas.opponents import OpponentRead
+from app.schemas.custom import Count
 from app.core.logger import logging
 logger = logging.getLogger(__name__)
 

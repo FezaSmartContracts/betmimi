@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel
 from typing import Optional
-from ..models.user import Prediction
+from app.models.user import Prediction
 
 
 #-------------User schemas--------------------#
