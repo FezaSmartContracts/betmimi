@@ -157,7 +157,7 @@ async def get_fee_percentage(
     return owner
 
 @router.get("/game-info")
-async def get_fee_percentage(
+async def get_match_data(
     request: Request,
     match_id: int = Query(..., description="Match ID")
 ) -> dict:
