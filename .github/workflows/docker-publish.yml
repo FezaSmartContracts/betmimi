@@ -47,12 +47,6 @@ jobs:
             sudo docker-compose down
             git pull origin master
             sudo docker-compose build --no-cache
-            sudo docker-compose up -d --no-deps web app worker
-          EOF
-      
-      - name: Run Database Migrations
-        run: ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
-          cd netbet/betmimi
-          sudo docker-compose run --rm web alembic upgrade head
+            sudo docker-compose up -d --no-deps web worker migrations create_superuser
           EOF
         
