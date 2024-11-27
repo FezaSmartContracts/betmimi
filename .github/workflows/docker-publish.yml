@@ -47,6 +47,6 @@ jobs:
             sudo docker-compose down
             git pull origin master
             sudo docker-compose build --no-cache
-            sudo docker-compose up -d --no-deps web worker migrations create_superuser
+            sudo docker-compose up --build -d
           EOF
         
