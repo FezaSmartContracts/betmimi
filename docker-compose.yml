@@ -76,3 +76,6 @@ services:
       - ./src:/code/src
       - ../.env:/code/.env
       - ./wait-for-it.sh:/wait-for-it.sh
+
+volumes:
+  redis-data:
