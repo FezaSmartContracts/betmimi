@@ -30,7 +30,14 @@ class DatabaseSettings(BaseSettings):
 
 
 class PostgresSettings(DatabaseSettings):
-    DATABASE_URL: str = config("DATABASE_URL", default="DATABASE_URL")
+    POSTGRES_USER: str = config("POSTGRES_USER", default="postgres")
+    POSTGRES_PASSWORD: str = config("POSTGRES_PASSWORD", default="POSTGRES_PASSWORD")
+    POSTGRES_SERVER: str = config("POSTGRES_SERVER", default="POSTGRES_SERVER")
+    POSTGRES_PORT: int = config("POSTGRES_PORT", default=5432)
+    POSTGRES_DB: str = config("POSTGRES_DB", default="database-1")
+    POSTGRES_ASYNC_PREFIX: str = config("POSTGRES_ASYNC_PREFIX", default="postgresql+asyncpg://")
+    POSTGRES_URI: str = f"{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    POSTGRES_URL: str | None = config("POSTGRES_URL", default=None)
 
 
 class FirstUserSettings(BaseSettings):
