@@ -4,20 +4,15 @@ services:
       context: .
       dockerfile: Dockerfile
     image: betmimi
-    # -------- replace with comment to run with gunicorn --------
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    # command: gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
     env_file:
       - ./src/.env
     environment:
-      PYTHONPATH: "/code/src"
-    # -------- replace with comment if you are using nginx --------
+      - PYTHONPATH=/code/src
+      - DATABASE_URL=${DATABASE_URL}
     ports:
       - "8000:8000"
-    # expose:
-    #   - "8000"
     depends_on:
-      - db
       - redis
     volumes:
       - ./src/app:/code/app
@@ -32,47 +27,28 @@ services:
     env_file:
       - ./src/.env
     environment:
-      PYTHONPATH: "/code/src"
+      - PYTHONPATH=/code/src
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
-      - db
       - redis
     volumes:
       - ./src/app:/code/app
       - ./src/.env:/code/.env
-
-  db:
-    image: postgres:13
-    env_file:
-      - ./src/.env
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    #expose:
-    #  - "5432"
-    ports:
-      - 5432:5432
-
-  redis:
-    image: redis:alpine
-    volumes:
-      - redis-data:/data
-    expose:
-      - "6379"
 
   migrations:
     build:
       context: .
       dockerfile: Dockerfile
     image: betmimi
-    command: ["./wait-for-it.sh", "db:5432", "--", "sh", "-c", "alembic upgrade head"]
-
+    command: ["./wait-for-it.sh", "database-1.ch20kgo2scef.eu-north-1.rds.amazonaws.com:5432", "--", "sh", "-c", "alembic upgrade head"]
     env_file:
       - ./src/.env
     environment:
-      PYTHONPATH: "/code/src"
+      - PYTHONPATH=/code/src
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
-      - db
+      - redis
     volumes:
-      - ./src/.env:/code/.env
       - ./src/migrations:/code/migrations
       - ./src/alembic.ini:/code/alembic.ini
 
@@ -81,20 +57,15 @@ services:
       context: .
       dockerfile: Dockerfile
     image: betmimi
+    command: ["./wait-for-it.sh", "database-1.ch20kgo2scef.eu-north-1.rds.amazonaws.com:5432", "--", "python", "-m", "src.scripts.create_first_superuser"]
     env_file:
       - ./src/.env
     environment:
-      PYTHONPATH: "/code/src"
+      - PYTHONPATH=/code/src
+      - DATABASE_URL=${DATABASE_URL}
     depends_on:
-      - db
-      - migrations  # Ensures migrations are applied before creating superuser
-    command: ["./wait-for-it.sh", "migrations:5432", "--", "python", "-m", "src.scripts.create_first_superuser"]
+      - migrations
     volumes:
       - ./src:/code/src
       - ./src/.env:/code/.env
       - ./wait-for-it.sh:/wait-for-it.sh
-
-volumes:
-  postgres-data:
-  redis-data:
-  #pgadmin-data:
