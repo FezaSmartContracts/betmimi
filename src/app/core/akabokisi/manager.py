@@ -32,7 +32,6 @@ class MailboxManager:
                 _data = {"address": address, "subject": subject, "body": body}
                 data = pickle.dumps(_data)
                 await self.redis.rpush(relevant_queue_name, data)
-                logger.info(f"Email {address} added to Queue")
         except Exception as e:
             logger.error(f"Failed to add emails to queue due to: {e}")
     
@@ -93,7 +92,7 @@ class MailboxManager:
 
             sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
             response = sg.send(message)
-            logger.info(f"Batch email sent successfully to {len(emails)} recipients. Status code: {response.status_code}")
+            logger.info(f"Batch email sent successfully to recipients. Status code: {response.status_code}")
 
         except Exception as e:
-            logger.error(f"Failed to send batch email to {emails}: {e}")
+            logger.error(f"Failed to send batch email: {e}")

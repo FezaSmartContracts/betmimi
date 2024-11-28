@@ -62,7 +62,7 @@ class FallBackSubscriptionHandler:
                     log_data = pickle.dumps(log_dict)
 
                     await self.redis.rpush(self.redis_queue_name, log_data)
-                    logger.info(f"Added data to queue: {self.redis_queue_name}")
+                    
             except (pickle.PickleError, TypeError) as e:
                 logger.error(f"Failed to add payload data to queue: {e}")
 

@@ -52,11 +52,6 @@ async def get_predictions_for_matchid(
     return Count(number=preds)
 
 @router.get("/count-user-active-preds", response_model=Count)
-@cache(
-    key_prefix="count_active_preds:{public_address}",
-    resource_id_name="public_address",
-    expiration=30
-)
 async def count_user_active_predictions(
     request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
@@ -97,11 +92,6 @@ async def get_prediction(
 
 #dependencies=[Depends(get_current_user)]
 @router.get("/user-specific-history")
-@cache(
-    key_prefix="user_specific_history:{user_address}",
-    resource_id_name="public_address",
-    expiration=60
-)
 async def get_all_user_specific_prediction_history(
     request: Request,
     db: Annotated[AsyncSession, Depends(async_get_db)],
@@ -136,11 +126,6 @@ async def get_all_user_specific_prediction_history(
 @router.get(
     "/paginated-history",
     response_model=PaginatedListResponse[PredictionRead]
-)
-@cache(
-    key_prefix="history_{use_address}:page_{page}:items_per_page_{items_per_page}",
-    resource_id_name="layer",
-    expiration=60
 )
 async def get_all_user_prediction_history(
     request: Request,
@@ -499,11 +484,6 @@ async def get_all_active_predictions_sorted_by_id_and_unmatched(
 @router.get(
     "/user-backs-history",
     response_model=PaginatedListResponse[dict]
-)
-@cache(
-    key_prefix="user_backing_history:{user_address}:page_{page}:items_per_page_{items_per_page}",
-    resource_id_name="user_address",
-    expiration=60
 )
 async def get_all_user_backing_histroy(
     request: Request,
