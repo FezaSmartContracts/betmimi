@@ -29,12 +29,6 @@ class DatabaseSettings(BaseSettings):
     pass
 
 
-class SQLiteSettings(DatabaseSettings):
-    SQLITE_URI: str = config("SQLITE_URI", default="./sql_app.db")
-    SQLITE_SYNC_PREFIX: str = config("SQLITE_SYNC_PREFIX", default="sqlite:///")
-    SQLITE_ASYNC_PREFIX: str = config("SQLITE_ASYNC_PREFIX", default="sqlite+aiosqlite:///")
-
-
 class PostgresSettings(DatabaseSettings):
     DATABASE_URL: str = config("DATABASE_URL", default="DATABASE_URL")
 

@@ -17,13 +17,9 @@ from app.core.db.token_blacklist import TokenBlacklist
 # access to the values within the .ini file in use.
 config = context.config
 
-#config.set_main_option(
-    #"sqlalchemy.url",
-    #f"{settings.POSTGRES_ASYNC_PREFIX}{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@localhost/{settings.POSTGRES_DB}",
-#)
 config.set_main_option(
     "sqlalchemy.url",
-    f"{settings.POSTGRES_ASYNC_PREFIX}{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@db/{settings.POSTGRES_DB}",
+    f"{settings.DATABASE_URL}"
 )
 
 

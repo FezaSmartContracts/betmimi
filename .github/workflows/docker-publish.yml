@@ -80,6 +80,10 @@ jobs:
             git clean -fd
             git reset --hard origin/master
 
+            # Step 5: Copy .env file to the correct location (overwriting if exists)
+            echo "Copying .env file..."
+            cp ../.env src/
+
             # Step 5: Docker Compose Deployment
             if [ -f docker-compose.yml ]; then
               echo "Docker Compose file found. Starting services..."
