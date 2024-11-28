@@ -68,9 +68,8 @@ jobs:
               git reset --hard origin/master
             else
               echo "Cloning repository for the first time..."
-              mkdir -p netbet
               cd netbet
-              git clone https://github.com/FezaSmartContracts/betmimi.git
+              git clone git@github.com:FezaSmartContracts/betmimi.git
               cd betmimi
             fi
 
