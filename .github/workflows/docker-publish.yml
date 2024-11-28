@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,22 +6,26 @@ on:
       - master
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Step 2: Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Step 3: Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      # Step 4: Build and push Docker image
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
@@ -33,20 +37,61 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
 
-      # SSH into VPS and deploy for 'master' branch
-      - name: Start SSH Agent
+      # Step 5: Configure SSH for Deployment
+      - name: Configure SSH for Deployment
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
-      - name: Deploy to VPS (Production)
-        if: github.ref == 'refs/heads/master'
+      # Step 6: Deploy to VPS (Production)
+      - name: Deploy to VPS
         run: |
+          set -e  # Exit on error
+
+          echo "Starting deployment on VPS..."
+          
+          # SSH into the VPS and execute commands
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
-            cd netbet/betmimi
-            sudo docker-compose down
-            git pull origin master
-            sudo docker-compose build --no-cache
-            sudo docker-compose up -d
+            echo "Entering deployment process..."
+
+            # Step 1: Check if Git is installed
+            if ! command -v git &> /dev/null; then
+              echo "Git is not installed. Installing..."
+              sudo apt update && sudo apt install -y git
+            fi
+
+            # Step 2: Navigate to project directory or clone repository if missing
+            if [ -d netbet/betmimi ]; then
+              echo "Repository already exists. Pulling latest changes..."
+              cd netbet/betmimi
+              git fetch origin
+              git reset --hard origin/master
+            else
+              echo "Cloning repository for the first time..."
+              mkdir -p netbet
+              cd netbet
+              git clone https://github.com/FezaSmartContracts/betmimi.git
+              cd betmimi
+            fi
+
+            # Step 3: Use specific branch or tag if needed
+            git checkout master
+
+            # Step 4: Ensure a clean state
+            git clean -fd
+            git reset --hard origin/master
+
+            # Step 5: Docker Compose Deployment
+            if [ -f docker-compose.yml ]; then
+              echo "Docker Compose file found. Starting services..."
+              sudo docker-compose down || echo "No running containers to stop."
+              sudo docker-compose build --no-cache || { echo "Docker build failed"; exit 1; }
+              sudo docker-compose up -d || { echo "Docker startup failed"; exit 1; }
+              sudo docker image prune -f
+            else
+              echo "docker-compose.yml not found!"
+              exit 1
+            fi
+
+            echo "Deployment completed successfully."
           EOF
-        
