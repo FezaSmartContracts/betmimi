@@ -9,7 +9,6 @@ services:
       - ./src/.env
     environment:
       - PYTHONPATH=/code/src
-      - DATABASE_URL=${DATABASE_URL}
     ports:
       - "8000:8000"
     depends_on:
@@ -35,7 +34,6 @@ services:
       - ./src/.env
     environment:
       - PYTHONPATH=/code/src
-      - DATABASE_URL=${DATABASE_URL}
     depends_on:
       - redis
     volumes:
@@ -52,7 +50,6 @@ services:
       - ./src/.env
     environment:
       - PYTHONPATH=/code/src
-      - DATABASE_URL=${DATABASE_URL}
     depends_on:
       - redis
     volumes:
@@ -69,7 +66,6 @@ services:
       - ./src/.env
     environment:
       - PYTHONPATH=/code/src
-      - DATABASE_URL=${DATABASE_URL}
     depends_on:
       - migrations
     volumes:
